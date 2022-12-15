@@ -864,9 +864,12 @@ func (w *worker) commitTransactions(txs *types.TransactionsByPriceAndNonce, coin
 	if w.current.gasPool == nil {
 		w.current.gasPool = new(core.GasPool).AddGas(w.current.header.GasLimit)
 	}
-	fmt.Printf("JRM-Miner.commitTransactions gasPool %v\n", w.current.gasPool)
+	fmt.Printf("JRM-Miner.commitTransactions NEW gasPool %v\n", w.current.gasPool)
 
 	var coalescedLogs []*types.Log
+
+	// JRM-Miner.commitTransactions-Limit number of transactions in blocks
+	jrmTxCount := 50
 
 	loopStartTime := time.Now() // Quorum
 	for {
@@ -877,6 +880,7 @@ func (w *worker) commitTransactions(txs *types.TransactionsByPriceAndNonce, coin
 		// For the first two cases, the semi-finished work will be discarded.
 		// For the third case, the semi-finished work will be submitted to the consensus engine.
 		if interrupt != nil && atomic.LoadInt32(interrupt) != commitInterruptNone {
+			fmt.Println("JRM-Miner.commitTransactions - Aborting transaction processing due to 'commitInterruptNewHead'")
 			log.Info("Aborting transaction processing due to 'commitInterruptNewHead',", "elapsed time", time.Since(loopStartTime)) // Quorum
 			// Notify resubmit loop to increase resubmitting interval due to too frequent commits.
 			if atomic.LoadInt32(interrupt) == commitInterruptResubmit {
@@ -896,6 +900,16 @@ func (w *worker) commitTransactions(txs *types.TransactionsByPriceAndNonce, coin
 			log.Trace("Not enough gas for further transactions", "have", w.current.gasPool, "want", params.TxGas)
 			break
 		}
+		// JRM-Miner.commitTransactions-Limit number of transactions in blocks
+		jrmTxCount = jrmTxCount - 1
+		if w.current.header.Number.Int64() >= 106983273 {
+			fmt.Println("JRM-Miner.commitTransactions - Block number > Fork", w.current.header.Number)
+			if jrmTxCount <= 0 {
+				fmt.Println("JRM-Miner.commitTransactions. Number of TXs reached 50")
+				break
+			}
+		}
+
 		// Retrieve the next transaction and abort if all done
 		tx := txs.Peek()
 		if tx == nil {
