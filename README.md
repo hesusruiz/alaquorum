@@ -12,7 +12,7 @@ Switch to the `alaquorum`directory:
 cd alaquorum
 ```
 
-If you do not have a proper Go environment setup, use a container runningn the following command:
+If you do not have a proper Go environment setup, use a container running the following command:
 
 ```
 make alageth
