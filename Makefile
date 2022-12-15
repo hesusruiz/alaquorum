@@ -17,6 +17,9 @@ geth:
 	@echo "Done building."
 	@echo "Run \"$(GOBIN)/geth\" to launch geth."
 
+alageth:
+	docker run --rm -v "$(PWD)":/usr/src/myapp -w /usr/src/myapp golang:1.19 make geth
+
 bootnode:
 	$(GORUN) build/ci.go install ./cmd/bootnode
 	@echo "Done building."
