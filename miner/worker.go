@@ -861,9 +861,21 @@ func (w *worker) commitTransactions(txs *types.TransactionsByPriceAndNonce, coin
 		return true
 	}
 
+	// JRM-Miner.commitTransactions-Replaced the lines below
+	// if w.current.gasPool == nil {
+	// 	w.current.gasPool = new(core.GasPool).AddGas(w.current.header.GasLimit)
+	// }
+
 	if w.current.gasPool == nil {
-		w.current.gasPool = new(core.GasPool).AddGas(w.current.header.GasLimit)
+		if w.current.header.Number.Int64() >= 106983273 {
+			fmt.Println("JRM-Miner.commitTransactions - Block number > Fork", w.current.header.Number)
+			w.current.gasPool = new(core.GasPool).AddGas(8000000)
+		} else {
+			w.current.gasPool = new(core.GasPool).AddGas(w.current.header.GasLimit)
+		}
 	}
+	// JRM-Miner.commitTransactions-End replace
+
 	fmt.Printf("JRM-Miner.commitTransactions NEW gasPool %v\n", w.current.gasPool)
 
 	var coalescedLogs []*types.Log
@@ -897,15 +909,17 @@ func (w *worker) commitTransactions(txs *types.TransactionsByPriceAndNonce, coin
 		}
 		// If we don't have enough gas for any further transactions then we're done
 		if w.current.gasPool.Gas() < params.TxGas {
-			log.Trace("Not enough gas for further transactions", "have", w.current.gasPool, "want", params.TxGas)
+			// JRM-Miner.commitTransactions-Raise the level of log (even if this will log every block)
+			// log.Trace("Not enough gas for further transactions", "have", w.current.gasPool, "want", params.TxGas)
+			log.Warn("Not enough gas for further transactions", "have", w.current.gasPool, "want", params.TxGas)
 			break
 		}
 		// JRM-Miner.commitTransactions-Limit number of transactions in blocks
 		jrmTxCount = jrmTxCount - 1
 		if w.current.header.Number.Int64() >= 106983273 {
-			fmt.Println("JRM-Miner.commitTransactions - Block number > Fork", w.current.header.Number)
 			if jrmTxCount <= 0 {
 				fmt.Println("JRM-Miner.commitTransactions. Number of TXs reached 50")
+				log.Warn("JRM-Miner.commitTransactions. Number of TXs reached 50", "gas remain", w.current.gasPool, "want", params.TxGas)
 				break
 			}
 		}
