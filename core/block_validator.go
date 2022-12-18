@@ -106,16 +106,16 @@ func (v *BlockValidator) ValidateState(block *types.Block, statedb *state.StateD
 
 // CalcGasLimit computes the gas limit of the next block after parent.
 // JRM-Disable dynamic GasLimit calculation.
-// In a Public/Permissiond network like Alastria we do not want dynamic gas limits.
+// In a Public/Permissioned network like Alastria we do not want dynamic gas limits.
 // Blocks are generated at a fixed period if there are not enough transactions (including no transactions at all).
-// If there are many transactions, the block is generated immediately even if the block perido has not been expired.
+// If there are many transactions, the block is generated immediately even if the block period has not expired.
 // We want to have a very predictive cost of executing all txs in blocks, so we set a fixed gas.
 // For the moment this is hardcoded, but it will be configurable in the future
 func CalcGasLimit(parent *types.Block, gasFloor, gasCeil uint64) uint64 {
 	// Check if we are past the fork block number
-	parentBlockNumber := parent.Number().Int64()
-	if parentBlockNumber >= 106983273-1 {
-		return 8000000
+	parentBlockNumber := parent.Number().Uint64()
+	if parentBlockNumber >= params.AlastriaGasLimitBlockNumber-1 {
+		return params.AlastriaGasLimit
 	}
 
 	// contrib = (parentGasUsed * 3 / 2) / 4096

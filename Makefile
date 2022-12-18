@@ -17,8 +17,20 @@ geth:
 	@echo "Done building."
 	@echo "Run \"$(GOBIN)/geth\" to launch geth."
 
+aladocker:
+	docker build -t alabuilder .
+
 alageth:
-	docker run --rm -v "$(PWD)":/usr/src/myapp -w /usr/src/myapp golang:1.19 make geth
+	docker run --rm alabuilder >build/bin/geth
+	chmod +x build/bin/geth
+
+alaupload:
+	rsync -avz build/bin/geth ubuntu@multivalidator:/home/ubuntu/ALISYS/bin/geth
+	rsync -avz build/bin/geth ubuntu@multivalidator:/home/ubuntu/INDRA/bin/geth
+	rsync -avz build/bin/geth ubuntu@multivalidator:/home/ubuntu/IZERTIS/bin/geth
+	rsync -avz build/bin/geth ubuntu@validator:/home/ubuntu/ValidatorRedT/bin/geth
+	rsync -avz build/bin/geth ubuntu@regular:/home/ubuntu/DIGITEL/bin/geth
+
 
 bootnode:
 	$(GORUN) build/ci.go install ./cmd/bootnode

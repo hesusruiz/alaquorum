@@ -28,6 +28,16 @@ const (
 	MinGasLimit          uint64 = 700000000 // Minimum the gas limit may ever be.
 	GenesisGasLimit      uint64 = 800000000 // Gas limit of the Genesis block.
 
+	// JRM-Alastria Gas Limit
+	// In a Public/Permissioned network like Alastria we do not want dynamic gas limits and also they have to be reasonable.
+	// The hardcoded MinGasLimit of 700M exposes the network to DoS attacks.
+	// In our case, 8M is a limit big enough for the requirements of the network, and protects its members from ill-behaved
+	// applications.
+	// For the moment this is hardcoded, but it will be configurable in the future.
+	// The Alastria gas limit applies starting with the block number 106983273.
+	AlastriaGasLimit            uint64 = 8000000
+	AlastriaGasLimitBlockNumber uint64 = 106983273
+
 	MaximumExtraDataSize  uint64 = 32    // Maximum size extra data may be after Genesis.
 	ExpByteGas            uint64 = 10    // Times ceil(log256(exponent)) for the EXP instruction.
 	SloadGas              uint64 = 50    // Multiplied by the number of 32-byte words that are copied (round up) for any *COPY operation and added.

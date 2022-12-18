@@ -867,9 +867,9 @@ func (w *worker) commitTransactions(txs *types.TransactionsByPriceAndNonce, coin
 	// }
 
 	if w.current.gasPool == nil {
-		if w.current.header.Number.Int64() >= 106983273 {
+		if w.current.header.Number.Uint64() >= params.AlastriaGasLimitBlockNumber {
 			fmt.Println("JRM-Miner.commitTransactions - Block number", w.current.header.Number, ">= Fork")
-			w.current.gasPool = new(core.GasPool).AddGas(8000000)
+			w.current.gasPool = new(core.GasPool).AddGas(params.AlastriaGasLimit)
 		} else {
 			w.current.gasPool = new(core.GasPool).AddGas(w.current.header.GasLimit)
 		}
@@ -916,7 +916,7 @@ func (w *worker) commitTransactions(txs *types.TransactionsByPriceAndNonce, coin
 		}
 		// JRM-Miner.commitTransactions-Limit number of transactions in blocks
 		jrmTxCount = jrmTxCount - 1
-		if w.current.header.Number.Int64() >= 106983273 {
+		if w.current.header.Number.Uint64() >= params.AlastriaGasLimitBlockNumber {
 			if jrmTxCount <= 0 {
 				fmt.Println("JRM-Miner.commitTransactions. Number of TXs reached 50")
 				log.Warn("JRM-Miner.commitTransactions. Number of TXs reached 50", "gas remain", w.current.gasPool, "want", params.TxGas)

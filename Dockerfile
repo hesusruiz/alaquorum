@@ -3,8 +3,8 @@
 # when running this container if you want to get access to the resulting executable.
 # You can build geth in the current directory like this:
 #   docker build -t alabuilder .
-#   docker run --rm -v alabuilder >geth
-#   chmod -x geth
+#   docker run --rm alabuilder >geth
+#   chmod +x geth
 
 # Use a stock Go builder container
 FROM golang:1.19 as builder
@@ -23,6 +23,13 @@ RUN cd /go-ethereum && make geth
 
 VOLUME /go-ethereum/build/bin
 
-# This is just for completeness, because the real action is done when building the image
+# Send the executable binary inside the container to standard output
+# This allows to get the binary by running the container and redirecting stdout to the file that you want
+# Remember to make the file executable after it is created. For example:
+# Rebuild the image when you have modified the sources.
+#   docker build -t alabuilder .
+# Run the container after building to get the executable
+#   docker run --rm alabuilder >geth
+#   chmod +x geth
 CMD ["cat", "/go-ethereum/build/bin/geth"]
 
