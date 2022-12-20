@@ -362,6 +362,10 @@ func (w *worker) newWorkLoop(recommit time.Duration) {
 		timestamp   int64      // timestamp for each round of mining.
 	)
 
+	//JRM-Increase block generation time to 3 sec
+	recommit = 3000000000
+	minRecommit = recommit
+
 	timer := time.NewTimer(0)
 	defer timer.Stop()
 	<-timer.C // discard the initial tick
@@ -388,6 +392,7 @@ func (w *worker) newWorkLoop(recommit time.Duration) {
 	}
 
 	for {
+		log.Warn("JRM-newWorkLoop recommit", "seconds", recommit.Seconds())
 		select {
 		case <-w.startCh:
 			clearPending(w.chain.CurrentBlock().NumberU64())
@@ -395,6 +400,7 @@ func (w *worker) newWorkLoop(recommit time.Duration) {
 			commit(false, commitInterruptNewHead)
 
 		case head := <-w.chainHeadCh:
+			log.Warn("JRM-newWorkLoop <-w.chainHeadCh:", "seconds", recommit.Seconds())
 			if h, ok := w.engine.(consensus.Handler); ok {
 				h.NewChainHead()
 			}
@@ -403,6 +409,7 @@ func (w *worker) newWorkLoop(recommit time.Duration) {
 			commit(false, commitInterruptNewHead)
 
 		case <-timer.C:
+			log.Warn("JRM-newWorkLoop recommit, timer elapsed:", "seconds", recommit.Seconds())
 			// If mining is running resubmit a new work cycle periodically to pull in
 			// higher priced transactions. Disable this overhead for pending blocks.
 			if w.isRunning() && (w.chainConfig.Clique == nil || w.chainConfig.Clique.Period > 0) {
@@ -411,6 +418,7 @@ func (w *worker) newWorkLoop(recommit time.Duration) {
 					timer.Reset(recommit)
 					continue
 				}
+				fmt.Println("JRM-newWorkLoop doing commit")
 				commit(true, commitInterruptResubmit)
 			}
 
@@ -428,6 +436,7 @@ func (w *worker) newWorkLoop(recommit time.Duration) {
 			}
 
 		case adjust := <-w.resubmitAdjustCh:
+			log.Warn("JRM-newWorkLoop <-w.resubmitAdjustCh:", "seconds", recommit.Seconds())
 			// Adjust resubmit interval by feedback.
 			if adjust.inc {
 				before := recommit

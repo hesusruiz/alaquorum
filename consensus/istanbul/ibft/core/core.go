@@ -276,7 +276,9 @@ func (c *core) startNewRound(round *big.Int) {
 	c.newRoundChangeTimer()
 
 	if c.IsProposer() {
-		fmt.Printf("\n\nJRM-I am Proposer of block %v in round %v\n", newView.Sequence, newView.Round)
+		fmt.Println()
+		fmt.Println()
+		log.Warn("JRM-I am Proposer of", "block", newView.Sequence, "in round", newView.Round)
 	}
 	logger.Debug("New round", "new_round", newView.Round, "new_seq", newView.Sequence, "new_proposer", c.valSet.GetProposer(), "valSet", c.valSet.List(), "size", c.valSet.Size(), "IsProposer", c.IsProposer())
 }
@@ -358,6 +360,11 @@ func (c *core) newRoundChangeTimer() {
 	if round > 0 {
 		timeout += time.Duration(math.Pow(2, float64(round))) * time.Second
 	}
+	// JRM-Increase block generation period
+	if round == 0 {
+		fmt.Println("JRM-newRoundChangeTimer, round 0, timeout", timeout.Seconds())
+	}
+
 	c.roundChangeTimer = time.AfterFunc(timeout, func() {
 		c.sendEvent(timeoutEvent{})
 	})

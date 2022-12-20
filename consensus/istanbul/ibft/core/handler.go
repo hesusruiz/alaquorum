@@ -24,6 +24,7 @@ import (
 	istanbulcommon "github.com/ethereum/go-ethereum/consensus/istanbul/common"
 	ibfttypes "github.com/ethereum/go-ethereum/consensus/istanbul/ibft/types"
 	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/log"
 )
 
 // Start implements core.Engine.Start
@@ -94,7 +95,7 @@ func (c *core) handleEvents() {
 			case istanbul.RequestEvent:
 				b, ok := ev.Proposal.(*types.Block)
 				if ok {
-					fmt.Printf("JRM-IBFT.Core.handleEvents RequestEvent number %v gasLimit %v hash %v\n", ev.Proposal.Number(), b.GasLimit(), ev.Proposal.Hash())
+					log.Warn("JRM-IBFT.Core.handleEvents RequestEvent", "number", ev.Proposal.Number(), "gasLimit", b.GasLimit(), "hash", ev.Proposal.Hash())
 				}
 
 				r := &istanbul.Request{
@@ -192,19 +193,19 @@ func (c *core) handleCheckedMsg(msg *ibfttypes.Message, src istanbul.Validator) 
 
 	switch msg.Code {
 	case ibfttypes.MsgPreprepare:
-		fmt.Printf("JRM-IBFT.Core.handleCheckedMsg Preprepare\n")
+		log.Warn("JRM-IBFT.Core.handleCheckedMsg Preprepare")
 		err := c.handlePreprepare(msg, src)
 		return testBacklog(err)
 	case ibfttypes.MsgPrepare:
-		fmt.Printf("JRM-IBFT.Core.handleCheckedMsg Prepare\n")
+		log.Warn("JRM-IBFT.Core.handleCheckedMsg Prepare")
 		err := c.handlePrepare(msg, src)
 		return testBacklog(err)
 	case ibfttypes.MsgCommit:
-		fmt.Printf("JRM-IBFT.Core.handleCheckedMsg Commit\n")
+		log.Warn("JRM-IBFT.Core.handleCheckedMsg Commit")
 		err := c.handleCommit(msg, src)
 		return testBacklog(err)
 	case ibfttypes.MsgRoundChange:
-		fmt.Printf("JRM-IBFT.Core.handleCheckedMsg RoundChange\n")
+		log.Warn("JRM-IBFT.Core.handleCheckedMsg RoundChange")
 		err := c.handleRoundChange(msg, src)
 		return testBacklog(err)
 	default:

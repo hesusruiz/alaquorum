@@ -25,10 +25,11 @@ import (
 	istanbulcommon "github.com/ethereum/go-ethereum/consensus/istanbul/common"
 	ibfttypes "github.com/ethereum/go-ethereum/consensus/istanbul/ibft/types"
 	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/log"
 )
 
 func (c *core) sendPreprepare(request *istanbul.Request) {
-	fmt.Printf("JRM-IBFT.sendPreprepare number %v hash %v\n", request.Proposal.Number(), request.Proposal.Hash())
+	log.Warn("JRM-IBFT.sendPreprepare", "number", request.Proposal.Number(), "hash", request.Proposal.Hash())
 	logger := c.logger.New("state", c.state)
 	// If I'm the proposer and I have the same sequence with the proposal
 	if c.current.Sequence().Cmp(request.Proposal.Number()) == 0 && c.IsProposer() {

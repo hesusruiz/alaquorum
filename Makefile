@@ -24,11 +24,14 @@ alageth:
 	docker run --rm alabuilder >build/bin/geth
 	chmod +x build/bin/geth
 
+alamyupload:
+	rsync -avz build/bin/geth ubuntu@validator:/home/ubuntu/ValidatorRedT/bin/geth
+
 alaupload:
+	rsync -avz build/bin/geth ubuntu@validator:/home/ubuntu/ValidatorRedT/bin/geth
 	rsync -avz build/bin/geth ubuntu@multivalidator:/home/ubuntu/ALISYS/bin/geth
 	rsync -avz build/bin/geth ubuntu@multivalidator:/home/ubuntu/INDRA/bin/geth
 	rsync -avz build/bin/geth ubuntu@multivalidator:/home/ubuntu/IZERTIS/bin/geth
-	rsync -avz build/bin/geth ubuntu@validator:/home/ubuntu/ValidatorRedT/bin/geth
 	rsync -avz build/bin/geth ubuntu@regular:/home/ubuntu/DIGITEL/bin/geth
 
 

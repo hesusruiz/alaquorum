@@ -159,10 +159,12 @@ func (e *Engine) verifyCascadingFields(chain consensus.ChainHeaderReader, header
 		return consensus.ErrUnknownAncestor
 	}
 
+	// JRM-Increment Alastria BlockPeriod
+	// This check has to be temporarily disabled to permit that each Validator can modify the blockperiod individually
 	// Ensure that the block's timestamp isn't too close to it's parent
-	if parent.Time+e.cfg.BlockPeriod > header.Time {
-		return istanbulcommon.ErrInvalidTimestamp
-	}
+	// if parent.Time+e.cfg.BlockPeriod > header.Time {
+	// 	return istanbulcommon.ErrInvalidTimestamp
+	// }
 
 	// Verify signer
 	if err := e.verifySigner(chain, header, parents, validators); err != nil {
@@ -266,9 +268,6 @@ func (e *Engine) VerifySeal(chain consensus.ChainHeaderReader, header *types.Hea
 }
 
 func (e *Engine) Prepare(chain consensus.ChainHeaderReader, header *types.Header, validators istanbul.ValidatorSet) error {
-	if header.GasLimit > 20000000 {
-		fmt.Printf("JRM-IBFT.Engine.Prepare number %v gasLimit %v\n", header.Number, header.GasLimit)
-	}
 	header.Coinbase = common.Address{}
 	header.Nonce = istanbulcommon.EmptyBlockNonce
 	header.MixDigest = types.IstanbulDigest
@@ -313,9 +312,6 @@ func (e *Engine) Finalize(chain consensus.ChainHeaderReader, header *types.Heade
 // FinalizeAndAssemble implements consensus.Engine, ensuring no uncles are set,
 // nor block rewards given, and returns the final block.
 func (e *Engine) FinalizeAndAssemble(chain consensus.ChainHeaderReader, header *types.Header, state *state.StateDB, txs []*types.Transaction, uncles []*types.Header, receipts []*types.Receipt) (*types.Block, error) {
-	if header.GasLimit > 20000000 {
-		fmt.Printf("JRM-IBFT.Engine.FinalizeAndAssemble number %v gasLimit %v\n", header.Number, header.GasLimit)
-	}
 	/// No block rewards in Istanbul, so the state remains as is and uncles are dropped
 	header.Root = state.IntermediateRoot(chain.Config().IsEIP158(header.Number))
 	header.UncleHash = nilUncleHash
@@ -330,9 +326,6 @@ func (e *Engine) Seal(chain consensus.ChainHeaderReader, block *types.Block, val
 	// update the block header timestamp and signature and propose the block to core engine
 	header := block.Header()
 	number := header.Number.Uint64()
-	if header.GasLimit > 20000000 {
-		fmt.Printf("JRM-IBFT.Engine.Seal gasLimit: %v\n", header.GasLimit)
-	}
 
 	if _, v := validators.GetByAddress(e.signer); v == nil {
 		return block, istanbulcommon.ErrUnauthorized
