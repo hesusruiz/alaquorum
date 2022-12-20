@@ -1,9 +1,9 @@
 # Alastria RedT geth binary and generation of new nodekey
 
-This repository can be used for several purposes:
+This repository contains:
 
 1. A lightweight container to run Geth in a production node for the Alastria RedT network
-2. An easy way to compile and get a native Geth binary for those who want to run a production node withou containers, or that want the flexibility to use the Geth binary in a customized production environment.
+2. An easy way to compile and get a native Geth binary for those who want to run a production node without containers, or that want the flexibility to use the Geth binary in a customized production environment.
 3. Easy generation of a new nodekey for a new node in the network
 
 ## Installing the system
