@@ -2,7 +2,9 @@
 # The executables will be in /go-ethereum/build/bin/ so you need to map that directory
 # when running this container if you want to get access to the resulting executable.
 # You can build geth in the current directory like this:
+# Rebuild the image when you have modified the sources.
 #   docker build -t alabuilder .
+# Run the container after building to get the executable
 #   docker run --rm alabuilder >geth
 #   chmod +x geth
 
@@ -18,18 +20,33 @@ RUN cd /go-ethereum && go mod tidy
 # Add sources to the build directory inside container
 ADD . /go-ethereum
 
-# And build Geth
-RUN cd /go-ethereum && make geth
+# And build geth and newnodekey
+RUN cd /go-ethereum && make geth newnodekey
 
-VOLUME /go-ethereum/build/bin
+# For runtime use a distroless image to make it as small as possible.
+# There is an even smaller one ('gcr.io/distroless/static-debian11') which
+# does not include glibc, libssl and openssl.
+# But to play safe we use an image including those libraries.
+FROM gcr.io/distroless/base-debian11
 
-# Send the executable binary inside the container to standard output
-# This allows to get the binary by running the container and redirecting stdout to the file that you want
-# Remember to make the file executable after it is created. For example:
-# Rebuild the image when you have modified the sources.
-#   docker build -t alabuilder .
-# Run the container after building to get the executable
-#   docker run --rm alabuilder >geth
-#   chmod +x geth
-CMD ["cat", "/go-ethereum/build/bin/geth"]
+# Copy the application binaries
+COPY --from=builder /go-ethereum/build/bin/geth /geth
+COPY --from=builder /go-ethereum/build/bin/newnodekey /newnodekey
 
+# Copy the cat command to help extract the binary from the container
+COPY --from=builder /bin/cat /cat
+
+# Make sure we are in the root directory
+WORKDIR /
+ENV PATH=/
+
+# Expose the P2P port, both for TCP and UDP
+EXPOSE 21000/tcp
+EXPOSE 21000/udp
+
+# Expose the JSON-RPC port for HTTP
+EXPOSE 22000
+# Expose the JSON-RPC port for WebSockets
+EXPOSE 22001
+
+CMD ["geth"]

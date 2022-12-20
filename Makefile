@@ -18,14 +18,17 @@ geth:
 	@echo "Run \"$(GOBIN)/geth\" to launch geth."
 
 aladocker:
-	docker build -t alabuilder .
+	docker build -t alageth .
 
 alageth:
-	docker run --rm alabuilder >build/bin/geth
+	docker run --rm alageth cat /geth >build/bin/geth
 	chmod +x build/bin/geth
+	docker run --rm alageth cat /newnodekey >build/bin/newnodekey
+	chmod +x build/bin/newnodekey
 
 alamyupload:
 	rsync -avz build/bin/geth ubuntu@validator:/home/ubuntu/ValidatorRedT/bin/geth
+	rsync -avz build/bin/newnodekey ubuntu@validator:/home/ubuntu/ValidatorRedT/bin/newnodekey
 
 alaupload:
 	rsync -avz build/bin/geth ubuntu@validator:/home/ubuntu/ValidatorRedT/bin/geth
@@ -34,6 +37,9 @@ alaupload:
 	rsync -avz build/bin/geth ubuntu@multivalidator:/home/ubuntu/IZERTIS/bin/geth
 	rsync -avz build/bin/geth ubuntu@regular:/home/ubuntu/DIGITEL/bin/geth
 
+newnodekey:
+	$(GORUN) build/ci.go install ./cmd/newnodekey
+	@echo "Done building."
 
 bootnode:
 	$(GORUN) build/ci.go install ./cmd/bootnode

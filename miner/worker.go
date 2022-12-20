@@ -877,7 +877,7 @@ func (w *worker) commitTransactions(txs *types.TransactionsByPriceAndNonce, coin
 
 	if w.current.gasPool == nil {
 		if w.current.header.Number.Uint64() >= params.AlastriaGasLimitBlockNumber {
-			fmt.Println("JRM-Miner.commitTransactions - Block number", w.current.header.Number, ">= Fork")
+			log.Warn("JRM-Miner.commitTransactions - Block past fork", "number", w.current.header.Number)
 			w.current.gasPool = new(core.GasPool).AddGas(params.AlastriaGasLimit)
 		} else {
 			w.current.gasPool = new(core.GasPool).AddGas(w.current.header.GasLimit)
@@ -885,12 +885,9 @@ func (w *worker) commitTransactions(txs *types.TransactionsByPriceAndNonce, coin
 	}
 	// JRM-Miner.commitTransactions-End replace
 
-	fmt.Printf("JRM-Miner.commitTransactions gasPool %v\n", w.current.gasPool)
+	log.Warn("JRM-Miner.commitTransactions", "gasPool", w.current.gasPool)
 
 	var coalescedLogs []*types.Log
-
-	// JRM-Miner.commitTransactions-Limit number of transactions in blocks
-	jrmTxCount := 50
 
 	loopStartTime := time.Now() // Quorum
 	for {
@@ -901,7 +898,6 @@ func (w *worker) commitTransactions(txs *types.TransactionsByPriceAndNonce, coin
 		// For the first two cases, the semi-finished work will be discarded.
 		// For the third case, the semi-finished work will be submitted to the consensus engine.
 		if interrupt != nil && atomic.LoadInt32(interrupt) != commitInterruptNone {
-			fmt.Println("JRM-Miner.commitTransactions - Aborting transaction processing due to 'commitInterruptNewHead'")
 			log.Info("Aborting transaction processing due to 'commitInterruptNewHead',", "elapsed time", time.Since(loopStartTime)) // Quorum
 			// Notify resubmit loop to increase resubmitting interval due to too frequent commits.
 			if atomic.LoadInt32(interrupt) == commitInterruptResubmit {
@@ -918,19 +914,10 @@ func (w *worker) commitTransactions(txs *types.TransactionsByPriceAndNonce, coin
 		}
 		// If we don't have enough gas for any further transactions then we're done
 		if w.current.gasPool.Gas() < params.TxGas {
-			// JRM-Miner.commitTransactions-Raise the level of log (even if this will log every block)
+			// JRM-Miner.commitTransactions-Raise the level of log
 			// log.Trace("Not enough gas for further transactions", "have", w.current.gasPool, "want", params.TxGas)
 			log.Warn("Not enough gas for further transactions", "have", w.current.gasPool, "want", params.TxGas)
 			break
-		}
-		// JRM-Miner.commitTransactions-Limit number of transactions in blocks
-		jrmTxCount = jrmTxCount - 1
-		if w.current.header.Number.Uint64() >= params.AlastriaGasLimitBlockNumber {
-			if jrmTxCount <= 0 {
-				fmt.Println("JRM-Miner.commitTransactions. Number of TXs reached 50")
-				log.Warn("JRM-Miner.commitTransactions. Number of TXs reached 50", "gas remain", w.current.gasPool, "want", params.TxGas)
-				break
-			}
 		}
 
 		// Retrieve the next transaction and abort if all done

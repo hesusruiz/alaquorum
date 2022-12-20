@@ -35,7 +35,7 @@ const (
 	// applications.
 	// For the moment this is hardcoded, but it will be configurable in the future.
 	// The Alastria gas limit applies starting with the block number 106983273.
-	AlastriaGasLimit            uint64 = 8000000
+	AlastriaGasLimit            uint64 = 30000000
 	AlastriaGasLimitBlockNumber uint64 = 106983273
 
 	MaximumExtraDataSize  uint64 = 32    // Maximum size extra data may be after Genesis.

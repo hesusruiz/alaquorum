@@ -1,0 +1,37 @@
+# We use a stock Go container to build Quorum Geth.
+# The executables will be in /go-ethereum/build/bin/ so you need to map that directory
+# when running this container if you want to get access to the resulting executable.
+# You can build geth in the current directory like this:
+# Rebuild the image when you have modified the sources.
+#   docker build -t alabuilder .
+# Run the container after building to get the executable
+#   docker run --rm alabuilder >geth
+#   chmod +x geth
+
+# Use a stock Go builder container
+FROM golang:1.19 as builder
+
+# Get dependencies - will also be cached if we won't change go.mod/go.sum
+COPY go.mod /go-ethereum/
+COPY go.sum /go-ethereum/
+WORKDIR /go-ethereum
+RUN cd /go-ethereum && go mod tidy
+
+# Add sources to the build directory inside container
+ADD . /go-ethereum
+
+# And build Geth
+RUN cd /go-ethereum && make geth
+
+VOLUME /go-ethereum/build/bin
+
+# Send the executable binary inside the container to standard output
+# This allows to get the binary by running the container and redirecting stdout to the file that you want
+# Remember to make the file executable after it is created. For example:
+# Rebuild the image when you have modified the sources.
+#   docker build -t alabuilder .
+# Run the container after building to get the executable
+#   docker run --rm alabuilder >geth
+#   chmod +x geth
+CMD ["cat", "/go-ethereum/build/bin/geth"]
+
