@@ -18,12 +18,12 @@ geth:
 	@echo "Run \"$(GOBIN)/geth\" to launch geth."
 
 aladocker:
-	docker build -t alageth .
+	docker build -t hesusruiz/alageth:v1.0 .
 
 alageth:
-	docker run --rm alageth cat /geth >build/bin/geth
+	docker run --rm hesusruiz/alageth:v1.0 cat /geth >build/bin/geth
 	chmod +x build/bin/geth
-	docker run --rm alageth cat /newnodekey >build/bin/newnodekey
+	docker run --rm hesusruiz/alageth:v1.0 cat /newnodekey >build/bin/newnodekey
 	chmod +x build/bin/newnodekey
 
 alamyupload:
