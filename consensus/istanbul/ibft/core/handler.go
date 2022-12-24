@@ -84,6 +84,8 @@ func (c *core) handleEvents() {
 	}()
 
 	for {
+		log.Warn("JRM-IBFT.Core.handleEvents for loop start")
+
 		select {
 		case event, ok := <-c.events.Chan():
 			if !ok {
@@ -93,6 +95,7 @@ func (c *core) handleEvents() {
 			// A real event arrived, process interesting content
 			switch ev := event.Data.(type) {
 			case istanbul.RequestEvent:
+				log.Warn("JRM-IBFT.Core.handleEvents istanbul.RequestEvent")
 				b, ok := ev.Proposal.(*types.Block)
 				if ok {
 					log.Warn("JRM-IBFT.Core.handleEvents RequestEvent", "number", ev.Proposal.Number(), "gasLimit", b.GasLimit(), "hash", ev.Proposal.Hash())
@@ -106,13 +109,14 @@ func (c *core) handleEvents() {
 					c.storeRequestMsg(r)
 				}
 			case istanbul.MessageEvent:
+				log.Warn("JRM-IBFT.Core.handleEvents istanbul.MessageEvent")
 
 				if err := c.handleMsg(ev.Payload); err == nil {
 					c.backend.Gossip(c.valSet, ev.Code, ev.Payload)
 				}
 			case backlogEvent:
+				log.Warn("JRM-IBFT.Core.handleEvents backlogEvent")
 				// No need to check signature for internal messages
-				fmt.Printf("JRM-handleEvents Backlog\n")
 				if err := c.handleCheckedMsg(ev.msg, ev.src); err == nil {
 					p, err := ev.msg.Payload()
 					if err != nil {
@@ -123,12 +127,13 @@ func (c *core) handleEvents() {
 				}
 			}
 		case _, ok := <-c.timeoutSub.Chan():
-			fmt.Printf("JRM-handleEvents Timeout\n")
+			log.Warn("JRM-IBFT.Core.handleEvents <-c.timeoutSub.Chan()")
 			if !ok {
 				return
 			}
 			c.handleTimeoutMsg()
 		case event, ok := <-c.finalCommittedSub.Chan():
+			log.Warn("JRM-IBFT.Core.handleEvents <-c.finalCommittedSub.Chan")
 			if !ok {
 				return
 			}

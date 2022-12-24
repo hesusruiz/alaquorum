@@ -2,7 +2,6 @@ package core
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"math/big"
 	"os"
@@ -30,8 +29,9 @@ func IsNodePermissioned(nodename string, currentNode string, datadir string, dir
 			return !isNodeBlackListed(nodename, datadir)
 		}
 	}
-	fmt.Println("JRM-IsNodePermissioned DENIED", "connection", direction, "nodename", nodename)
-	log.Debug("IsNodePermissioned", "connection", direction, "nodename", nodename[:params.NODE_NAME_LENGTH], "DENIED-BY", currentNode[:params.NODE_NAME_LENGTH])
+	// JRM-IsNodePermissioned
+	// log.Debug("IsNodePermissioned", "connection", direction, "nodename", nodename[:params.NODE_NAME_LENGTH], "DENIED-BY", currentNode[:params.NODE_NAME_LENGTH])
+	log.Warn("IsNodePermissioned", "connection", direction, "nodename", nodename[:params.NODE_NAME_LENGTH], "DENIED-BY", currentNode[:params.NODE_NAME_LENGTH])
 	return false
 }
 
