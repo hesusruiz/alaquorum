@@ -265,7 +265,7 @@ func (sb *Backend) Verify(proposal istanbul.Proposal) (time.Duration, error) {
 		return 0, istanbulcommon.ErrInvalidProposal
 	}
 
-	fmt.Println(time.Now().Unix(), "JRM-Istanbul.Backend.Verify number", block.Number(), "gasLimit", block.GasLimit())
+	sb.logger.Warn("JRM-Istanbul.Backend.Verify", "number", block.Number(), "gasLimit", block.GasLimit())
 
 	// check bad block
 	if sb.HasBadProposal(block.Hash()) {

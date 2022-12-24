@@ -19,7 +19,6 @@ package backend
 import (
 	"bytes"
 	"errors"
-	"fmt"
 	"io/ioutil"
 	"math/big"
 	"reflect"
@@ -96,7 +95,6 @@ func (sb *Backend) HandleMsg(addr common.Address, msg p2p.Msg) (bool, error) {
 		}
 		sb.knownMessages.Add(hash, true)
 
-		fmt.Printf("JRM-Backend Post %v\n", msg.Code)
 		go sb.istanbulEventMux.Post(istanbul.MessageEvent{
 			Code:    msg.Code,
 			Payload: data,

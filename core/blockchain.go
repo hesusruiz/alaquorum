@@ -30,6 +30,7 @@ import (
 	"time"
 
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/common/math"
 	"github.com/ethereum/go-ethereum/common/mclock"
 	"github.com/ethereum/go-ethereum/common/prque"
 	"github.com/ethereum/go-ethereum/consensus"
@@ -731,9 +732,7 @@ func (bc *BlockChain) GasLimit() uint64 {
 	defer bc.chainmu.RUnlock()
 
 	if bc.Config().IsQuorum {
-		fmt.Printf("JRM-Core.Blockchain.GasLimit. Returning 10000000")
-		return uint64(10000000)
-		// return math.MaxBig256.Uint64() // HACK(joel) a very large number
+		return math.MaxBig256.Uint64() // HACK(joel) a very large number
 	} else {
 		return bc.CurrentBlock().GasLimit()
 	}
@@ -1225,8 +1224,8 @@ func (bc *BlockChain) insertStopped() bool {
 }
 
 func (bc *BlockChain) procFutureBlocks() {
-	fmt.Printf("JRM-procFutureBlocks\n")
 	blocks := make([]*types.Block, 0, bc.futureBlocks.Len())
+	log.Warn("JRM-procFutureBlocks", "num", bc.futureBlocks.Len())
 	for _, hash := range bc.futureBlocks.Keys() {
 		if block, exist := bc.futureBlocks.Peek(hash); exist {
 			blocks = append(blocks, block.(*types.Block))

@@ -138,13 +138,13 @@ func (c *core) broadcast(msg *ibfttypes.Message) {
 	}
 
 	// Broadcast payload
-	fmt.Println("JRM-broadcast trying to broadcast msg", msg)
+	log.Warn("JRM-broadcast trying to broadcast", "msg", msg)
 	if err = c.backend.Broadcast(c.valSet, msg.Code, payload); err != nil {
 		logger.Error("Failed to broadcast message", "msg", msg, "err", err)
 		fmt.Println("JRM-broadcast ERROR trying to broadcast msg", msg, "error", err)
 		return
 	}
-	fmt.Println("JRM-broadcast successful broadcasted msg", msg)
+	log.Warn("JRM-broadcast successful broadcasted msg")
 
 }
 
@@ -195,7 +195,11 @@ func (c *core) startNewRound(round *big.Int) {
 		logger = c.logger.New("old_round", c.current.Round(), "old_seq", c.current.Sequence())
 	}
 
-	logger.Trace("Start new ibft round")
+	// JRM-StartNewRound
+	// logger.Trace("Start new ibft round")
+	logger.Warn("###")
+	logger.Warn("###")
+	logger.Warn("JRM-IBFT.Core.startNewRound", "round", round)
 
 	roundChange := false
 	// Try to get last proposal
@@ -266,19 +270,17 @@ func (c *core) startNewRound(round *big.Int) {
 			r := &istanbul.Request{
 				Proposal: c.current.Proposal(), //c.current.Proposal would be the locked proposal by previous proposer, see updateRoundState
 			}
-			fmt.Printf("JRM-IBFT.Core.startNewRound sendingPreprepare with current Proposal\n")
+			logger.Warn("JRM-IBFT.Core.startNewRound sendingPreprepare with current Proposal\n")
 			c.sendPreprepare(r)
 		} else if c.current.pendingRequest != nil {
-			fmt.Printf("JRM-IBFT.Core.startNewRound sendingPreprepare with pendingRequest\n")
+			logger.Warn("JRM-IBFT.Core.startNewRound sendingPreprepare with pendingRequest\n")
 			c.sendPreprepare(c.current.pendingRequest)
 		}
 	}
 	c.newRoundChangeTimer()
 
 	if c.IsProposer() {
-		fmt.Println()
-		fmt.Println()
-		log.Warn("JRM-I am Proposer of", "block", newView.Sequence, "in round", newView.Round)
+		logger.Warn("JRM-I am Proposer of", "block", newView.Sequence, "in round", newView.Round)
 	}
 	logger.Debug("New round", "new_round", newView.Round, "new_seq", newView.Sequence, "new_proposer", c.valSet.GetProposer(), "valSet", c.valSet.List(), "size", c.valSet.Size(), "IsProposer", c.IsProposer())
 }
@@ -360,10 +362,8 @@ func (c *core) newRoundChangeTimer() {
 	if round > 0 {
 		timeout += time.Duration(math.Pow(2, float64(round))) * time.Second
 	}
-	// JRM-Increase block generation period
-	if round == 0 {
-		fmt.Println("JRM-newRoundChangeTimer, round 0, timeout", timeout.Seconds())
-	}
+	// JRM-newRoundChangeTimer
+	log.Warn("JRM-newRoundChangeTimer", "round", round, "timeout", timeout.Seconds())
 
 	c.roundChangeTimer = time.AfterFunc(timeout, func() {
 		c.sendEvent(timeoutEvent{})

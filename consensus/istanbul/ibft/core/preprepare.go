@@ -17,14 +17,12 @@
 package core
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/ethereum/go-ethereum/consensus"
 	"github.com/ethereum/go-ethereum/consensus/istanbul"
 	istanbulcommon "github.com/ethereum/go-ethereum/consensus/istanbul/common"
 	ibfttypes "github.com/ethereum/go-ethereum/consensus/istanbul/ibft/types"
-	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/log"
 )
 
@@ -59,13 +57,6 @@ func (c *core) handlePreprepare(msg *ibfttypes.Message, src istanbul.Validator) 
 		return istanbulcommon.ErrFailedDecodePreprepare
 	}
 
-	b, ok := preprepare.Proposal.(*types.Block)
-	if ok {
-		if b.GasLimit() > 20000000 {
-			fmt.Printf("JRM-IBFT.handlePreprepare hash %v number %v gasLimit %v from %v\n", b.Hash(), b.Number(), b.GasLimit(), src.Address().String())
-		}
-	}
-
 	// Ensure we have the same view with the PRE-PREPARE message
 	// If it is old message, see if we need to broadcast COMMIT
 	if err := c.checkMessage(ibfttypes.MsgPreprepare, preprepare.View); err != nil {
@@ -78,7 +69,7 @@ func (c *core) handlePreprepare(msg *ibfttypes.Message, src istanbul.Validator) 
 			// 1. The proposer needs to be a proposer matches the given (Sequence + Round)
 			// 2. The given block must exist
 			if valSet.IsProposer(src.Address()) && c.backend.HasPropsal(preprepare.Proposal.Hash(), preprepare.Proposal.Number()) {
-				fmt.Printf("JRM-IBFT.handlePreprepare sendCommitForOldBlock\n")
+				logger.Warn("JRM-IBFT.handlePreprepare sendCommitForOldBlock\n")
 
 				c.sendCommitForOldBlock(preprepare.View, preprepare.Proposal.Hash())
 				return nil
@@ -97,7 +88,9 @@ func (c *core) handlePreprepare(msg *ibfttypes.Message, src istanbul.Validator) 
 	if duration, err := c.backend.Verify(preprepare.Proposal); err != nil {
 		// if it's a future block, we will handle it again after the duration
 		if err == consensus.ErrFutureBlock {
-			logger.Info("Proposed block will be handled in the future", "err", err, "duration", duration)
+			// JRM-handlePreprepare
+			// logger.Info("Proposed block will be handled in the future", "err", err, "duration", duration)
+			logger.Warn("JRM-Proposed block will be handled in the future", "err", err, "duration", duration)
 			c.stopFuturePreprepareTimer()
 			c.futurePreprepareTimer = time.AfterFunc(duration, func() {
 				c.sendEvent(backlogEvent{
@@ -113,9 +106,8 @@ func (c *core) handlePreprepare(msg *ibfttypes.Message, src istanbul.Validator) 
 	}
 
 	// Here is about to accept the PRE-PREPARE
-	fmt.Printf("JRM-IBFT.handlePreprepare checking to see about to ACCEPT\n")
 	if c.state == ibfttypes.StateAcceptRequest {
-		fmt.Printf("JRM-IBFT.handlePreprepare about to ACCEPT\n")
+		logger.Warn("JRM-IBFT.handlePreprepare about to ACCEPT\n")
 		// Send ROUND CHANGE if the locked proposal and the received proposal are different
 		if c.current.IsHashLocked() {
 			if preprepare.Proposal.Hash() == c.current.GetLockedHash() {

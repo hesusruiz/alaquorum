@@ -17,14 +17,13 @@
 package validator
 
 import (
-	"fmt"
 	"math"
 	"reflect"
 	"sync"
-	"time"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/consensus/istanbul"
+	"github.com/ethereum/go-ethereum/log"
 )
 
 type defaultValidator struct {
@@ -118,7 +117,7 @@ func (valSet *defaultSet) CalcProposer(lastProposer common.Address, round uint64
 	valSet.validatorMu.RLock()
 	defer valSet.validatorMu.RUnlock()
 	valSet.proposer = valSet.selector(valSet, lastProposer, round)
-	fmt.Println(time.Now().Unix(), "JRM-CalcProposer", "round", round, "lastProposer", lastProposer, "nextProposer", valSet.proposer)
+	log.Warn("JRM-CalcProposer", "round", round, "lastProposer", lastProposer, "nextProposer", valSet.proposer)
 }
 
 // ValidatorSetSorter sorts the validators based on the configured By function

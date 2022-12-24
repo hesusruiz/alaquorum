@@ -240,9 +240,6 @@ type storageblock struct {
 // and receipts.
 func NewBlock(header *Header, txs []*Transaction, uncles []*Header, receipts []*Receipt, hasher Hasher) *Block {
 	b := &Block{header: CopyHeader(header), td: new(big.Int)}
-	if b.GasLimit() > 20000000 {
-		fmt.Printf("JRM-NewBlock with GasLimit %v\n", b.header.GasLimit)
-	}
 
 	// TODO: panic if len(txs) != len(receipts)
 	if len(txs) == 0 {

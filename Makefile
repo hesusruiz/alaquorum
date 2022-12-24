@@ -28,7 +28,16 @@ alageth:
 
 alamyupload:
 	rsync -avz build/bin/geth ubuntu@validator:/home/ubuntu/ValidatorRedT/bin/geth
+	rsync -avz build/bin/geth ubuntu@multivalidator:/home/ubuntu/IZERTIS/bin/geth
 	rsync -avz build/bin/newnodekey ubuntu@validator:/home/ubuntu/ValidatorRedT/bin/newnodekey
+
+alaall:
+	docker build -t hesusruiz/alageth:v1.0 .
+	docker run --rm hesusruiz/alageth:v1.0 cat /geth >build/bin/geth
+	chmod +x build/bin/geth
+	docker run --rm hesusruiz/alageth:v1.0 cat /newnodekey >build/bin/newnodekey
+	chmod +x build/bin/newnodekey
+	rsync -avz build/bin/geth ubuntu@validator:/home/ubuntu/ValidatorRedT/bin/geth
 
 alaupload:
 	rsync -avz build/bin/geth ubuntu@validator:/home/ubuntu/ValidatorRedT/bin/geth

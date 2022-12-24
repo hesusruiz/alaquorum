@@ -2,7 +2,6 @@ package ibftengine
 
 import (
 	"bytes"
-	"fmt"
 	"math/big"
 	"time"
 
@@ -15,6 +14,7 @@ import (
 	"github.com/ethereum/go-ethereum/consensus/istanbul/validator"
 	"github.com/ethereum/go-ethereum/core/state"
 	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/log"
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/ethereum/go-ethereum/trie"
 	"golang.org/x/crypto/sha3"
@@ -64,9 +64,6 @@ func (e *Engine) CommitHeader(header *types.Header, seals [][]byte, round *big.I
 }
 
 func (e *Engine) VerifyBlockProposal(chain consensus.ChainHeaderReader, block *types.Block, validators istanbul.ValidatorSet) (time.Duration, error) {
-	if block.GasLimit() > 20000000 {
-		fmt.Printf("JRM-IBFT.Engine.VerifyBlockProposal number %v gasLimit %v\n", block.Number(), block.GasLimit())
-	}
 	// check block body
 	txnHash := types.DeriveSha(block.Transactions(), new(trie.Trie))
 	if txnHash != block.Header().TxHash {
@@ -290,9 +287,14 @@ func (e *Engine) Prepare(chain consensus.ChainHeaderReader, header *types.Header
 	header.Extra = extra
 
 	// set header's timestamp
-	header.Time = parent.Time + e.cfg.BlockPeriod
+	// JRM-Increment Alastria BlockPeriod
+	// header.Time = parent.Time + e.cfg.BlockPeriod
+	log.Warn("JRM-Prepare Current BlockPeriod", "period", e.cfg.BlockPeriod)
+	header.Time = parent.Time + 3
 	if header.Time < uint64(time.Now().Unix()) {
+		oldHeaderTime := header.Time
 		header.Time = uint64(time.Now().Unix())
+		log.Warn("JRM-Prepare Adjust header.Time", "old", oldHeaderTime, "new", header.Time)
 	}
 
 	return nil

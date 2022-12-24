@@ -17,8 +17,6 @@
 package core
 
 import (
-	"fmt"
-
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/consensus/istanbul"
 	istanbulcommon "github.com/ethereum/go-ethereum/consensus/istanbul/common"
@@ -139,7 +137,7 @@ func (c *core) handleEvents() {
 			}
 			switch event.Data.(type) {
 			case istanbul.FinalCommittedEvent:
-				fmt.Printf("JRM-handleEvents FinalCommitted\n")
+				log.Warn("JRM-IBFT.Core.handleEvents FinalCommitted")
 				c.handleFinalCommitted()
 			}
 		}
@@ -148,16 +146,16 @@ func (c *core) handleEvents() {
 
 // sendEvent sends events to mux
 func (c *core) sendEvent(ev interface{}) {
-	fmt.Printf("JRM-IBFT.Core.sendEvent\n")
+	log.Warn("JRM-IBFT.Core.sendEvent")
 
 	switch event := ev.(type) {
 	case istanbul.RequestEvent:
 		b, _ := event.Proposal.(*types.Block)
-		fmt.Printf("JRM-sendEvent RequestEvent number %v gasLimit %v\n", event.Proposal.Number(), b.GasLimit())
+		log.Warn("JRM-IBFT.Core.sendEvent RequestEvent", "number", event.Proposal.Number(), "gasLimit", b.GasLimit())
 	case istanbul.MessageEvent:
-		fmt.Printf("JRM-sendEvent MessageEvent code %v\n", event.Code)
+		log.Warn("JRM-IBFT.Core.sendEvent MessageEvent", "code", event.Code)
 	case backlogEvent:
-		fmt.Printf("JRM-sendEvent BacklogEvent code %v\n", event.msg.Code)
+		log.Warn("JRM-IBFT.Core.sendEvent BacklogEvent", "code", event.msg.Code)
 
 	}
 
