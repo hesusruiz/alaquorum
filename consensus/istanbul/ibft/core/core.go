@@ -18,7 +18,6 @@ package core
 
 import (
 	"bytes"
-	"fmt"
 	"math"
 	"math/big"
 	"sync"
@@ -141,7 +140,6 @@ func (c *core) broadcast(msg *ibfttypes.Message) {
 	log.Warn("JRM-broadcast trying to broadcast", "msg", msg)
 	if err = c.backend.Broadcast(c.valSet, msg.Code, payload); err != nil {
 		logger.Error("Failed to broadcast message", "msg", msg, "err", err)
-		fmt.Println("JRM-broadcast ERROR trying to broadcast msg", msg, "error", err)
 		return
 	}
 	log.Warn("JRM-broadcast successful broadcasted msg")

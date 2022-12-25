@@ -21,12 +21,11 @@ import (
 	istanbulcommon "github.com/ethereum/go-ethereum/consensus/istanbul/common"
 	ibfttypes "github.com/ethereum/go-ethereum/consensus/istanbul/ibft/types"
 	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/log"
 )
 
 func (c *core) handleRequest(request *istanbul.Request) error {
-	log.Warn("JRM-IBFT.Core.handleRequest")
 	logger := c.logger.New("state", c.state, "seq", c.current.sequence)
+	logger.Warn("JRM-IBFT.Core.handleRequest")
 	if err := c.checkRequestMsg(request); err != nil {
 		if err == istanbulcommon.ErrInvalidMessage {
 			logger.Warn("invalid request")
@@ -40,7 +39,7 @@ func (c *core) handleRequest(request *istanbul.Request) error {
 	c.current.pendingRequest = request
 	if c.state == ibfttypes.StateAcceptRequest {
 		b, _ := request.Proposal.(*types.Block)
-		log.Warn("JRM-IBFT.Core.handleRequest sending Preprepare", "number", b.Number(), "gasLimit", b.GasLimit())
+		logger.Warn("JRM-IBFT.Core.handleRequest sending Preprepare", "number", b.Number(), "gasLimit", b.GasLimit())
 
 		c.sendPreprepare(request)
 	}

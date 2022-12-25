@@ -18,7 +18,6 @@ package backend
 
 import (
 	"crypto/ecdsa"
-	"fmt"
 	"math/big"
 	"sync"
 	"time"
@@ -228,7 +227,6 @@ func (sb *Backend) Commit(proposal istanbul.Proposal, seals [][]byte, round *big
 
 	// update block's header
 	block = block.WithSeal(h)
-	fmt.Printf("JRM-Backend.Commit number %v gasLimit %v\n", block.Number(), block.Header().GasLimit)
 
 	sb.logger.Info("BFT: block proposal committed", "author", sb.Address(), "hash", proposal.Hash(), "number", proposal.Number().Uint64(), "gasLimit", block.Header().GasLimit)
 
@@ -264,8 +262,6 @@ func (sb *Backend) Verify(proposal istanbul.Proposal) (time.Duration, error) {
 		sb.logger.Error("BFT: invalid block proposal", "proposal", proposal)
 		return 0, istanbulcommon.ErrInvalidProposal
 	}
-
-	sb.logger.Warn("JRM-Istanbul.Backend.Verify", "number", block.Number(), "gasLimit", block.GasLimit())
 
 	// check bad block
 	if sb.HasBadProposal(block.Hash()) {

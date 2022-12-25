@@ -23,11 +23,10 @@ import (
 	"github.com/ethereum/go-ethereum/consensus/istanbul"
 	istanbulcommon "github.com/ethereum/go-ethereum/consensus/istanbul/common"
 	ibfttypes "github.com/ethereum/go-ethereum/consensus/istanbul/ibft/types"
-	"github.com/ethereum/go-ethereum/log"
 )
 
 func (c *core) sendPreprepare(request *istanbul.Request) {
-	log.Warn("JRM-IBFT.sendPreprepare", "number", request.Proposal.Number(), "hash", request.Proposal.Hash())
+	c.logger.Warn("JRM-IBFT.sendPreprepare", "number", request.Proposal.Number(), "hash", request.Proposal.Hash())
 	logger := c.logger.New("state", c.state)
 	// If I'm the proposer and I have the same sequence with the proposal
 	if c.current.Sequence().Cmp(request.Proposal.Number()) == 0 && c.IsProposer() {
@@ -69,7 +68,7 @@ func (c *core) handlePreprepare(msg *ibfttypes.Message, src istanbul.Validator) 
 			// 1. The proposer needs to be a proposer matches the given (Sequence + Round)
 			// 2. The given block must exist
 			if valSet.IsProposer(src.Address()) && c.backend.HasPropsal(preprepare.Proposal.Hash(), preprepare.Proposal.Number()) {
-				logger.Warn("JRM-IBFT.handlePreprepare sendCommitForOldBlock\n")
+				logger.Warn("JRM-IBFT.handlePreprepare sendCommitForOldBlock")
 
 				c.sendCommitForOldBlock(preprepare.View, preprepare.Proposal.Hash())
 				return nil

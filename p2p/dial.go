@@ -535,7 +535,7 @@ func (t *dialTask) resolve(d *dialScheduler) bool {
 // dial performs the actual connection attempt.
 func (t *dialTask) dial(d *dialScheduler, dest *enode.Node) error {
 	// JRM-dial
-	fmt.Println("JRM-dial dialing", t.dest.ID(), "addr", nodeAddr(t.dest))
+	log.Warn("JRM-dial", "destination", t.dest.ID(), "addr", nodeAddr(t.dest))
 	fd, err := d.dialer.Dial(d.ctx, t.dest)
 	if err != nil {
 		// JRM-dial

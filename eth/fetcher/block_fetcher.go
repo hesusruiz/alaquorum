@@ -370,7 +370,6 @@ func (f *BlockFetcher) loop() {
 			if f.light {
 				f.importHeaders(op.origin, op.header)
 			} else {
-				fmt.Printf("JRM-BeforeImportBlocks origin %v block %v gasLimit %v\n", op.origin, op.block.Number(), op.block.GasLimit())
 				f.importBlocks(op.origin, op.block)
 			}
 		}
@@ -785,7 +784,6 @@ func (f *BlockFetcher) importHeaders(peer string, header *types.Header) {
 // block's number is at the same height as the current import phase, it updates
 // the phase states accordingly.
 func (f *BlockFetcher) importBlocks(peer string, block *types.Block) {
-	fmt.Printf("JRM-Fetcher importBlocks\n")
 
 	hash := block.Hash()
 

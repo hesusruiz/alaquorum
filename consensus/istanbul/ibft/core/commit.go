@@ -17,14 +17,13 @@
 package core
 
 import (
-	"fmt"
 	"reflect"
-	"time"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/consensus/istanbul"
 	istanbulcommon "github.com/ethereum/go-ethereum/consensus/istanbul/common"
 	ibfttypes "github.com/ethereum/go-ethereum/consensus/istanbul/ibft/types"
+	"github.com/ethereum/go-ethereum/log"
 )
 
 func (c *core) sendCommit() {
@@ -76,7 +75,7 @@ func (c *core) handleCommit(msg *ibfttypes.Message, src istanbul.Validator) erro
 	//
 	// If we already have a proposal, we may have chance to speed up the consensus process
 	// by committing the proposal without PREPARE messages.
-	fmt.Println(time.Now().Unix(), "JRM-IBFT.handleCommit with", c.current.Commits.Size(), "commits of ", c.QuorumSize())
+	log.Warn("JRM-IBFT.handleCommit", "commits", c.current.Commits.Size(), "quorum", c.QuorumSize())
 	if c.current.Commits.Size() >= c.QuorumSize() && c.state.Cmp(ibfttypes.StateCommitted) < 0 {
 		// Still need to call LockHash here since state can skip Prepared state and jump directly to the Committed state.
 		c.current.LockHash()

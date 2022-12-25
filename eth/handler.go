@@ -197,7 +197,6 @@ func NewProtocolManager(config *params.ChainConfig, checkpoint *params.TrustedCh
 			log.Warn("Fast syncing, discarded propagated block", "number", blocks[0].Number(), "hash", blocks[0].Hash())
 			return 0, nil
 		}
-		fmt.Printf("JRM-EthHandler inserter\n")
 		n, err := manager.blockchain.InsertChain(blocks)
 		if err == nil {
 			atomic.StoreUint32(&manager.acceptTxs, 1) // Mark initial sync done on any fetcher import

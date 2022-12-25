@@ -18,7 +18,6 @@ package core
 
 import (
 	"container/heap"
-	"fmt"
 	"math"
 	"math/big"
 	"sort"
@@ -369,7 +368,6 @@ func (l *txList) FilterByGas(gasLimit uint64) (types.Transactions, types.Transac
 
 	// Filter out all the transactions above the gas limit
 	removed := l.txs.Filter(func(tx *types.Transaction) bool {
-		fmt.Printf("JRM-Removed TX with gas over limit: %v", tx.Gas())
 		return tx.Gas() > gasLimit
 	})
 

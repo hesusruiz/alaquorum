@@ -17,9 +17,7 @@
 package core
 
 import (
-	"fmt"
 	"reflect"
-	"time"
 
 	"github.com/ethereum/go-ethereum/consensus/istanbul"
 	istanbulcommon "github.com/ethereum/go-ethereum/consensus/istanbul/common"
@@ -49,7 +47,7 @@ func (c *core) handlePrepare(msg *ibfttypes.Message, src istanbul.Validator) err
 		return istanbulcommon.ErrFailedDecodePrepare
 	}
 
-	fmt.Println(time.Now().Unix(), "JRM-IBFT.handlePrepare", prepare.Digest)
+	c.logger.Warn("JRM-IBFT.handlePrepare", "digest", prepare.Digest)
 
 	if err := c.checkMessage(ibfttypes.MsgPrepare, prepare.View); err != nil {
 		return err
@@ -67,7 +65,7 @@ func (c *core) handlePrepare(msg *ibfttypes.Message, src istanbul.Validator) err
 	// and we are in earlier state before Prepared state.
 	if ((c.current.IsHashLocked() && prepare.Digest == c.current.GetLockedHash()) || c.current.GetPrepareOrCommitSize() >= c.QuorumSize()) &&
 		c.state.Cmp(ibfttypes.StatePrepared) < 0 {
-		fmt.Println(time.Now().Unix(), "JRM-IBFT.handlePrepare sendCommit,", c.current.GetPrepareOrCommitSize(), "prepare or commits >=", c.QuorumSize())
+		c.logger.Warn("JRM-IBFT.handlePrepare", "prepareorcommits", c.current.GetPrepareOrCommitSize(), "quorum", c.QuorumSize())
 		c.current.LockHash()
 		c.setState(ibfttypes.StatePrepared)
 		c.sendCommit()

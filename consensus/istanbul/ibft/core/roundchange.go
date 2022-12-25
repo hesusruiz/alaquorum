@@ -17,7 +17,6 @@
 package core
 
 import (
-	"fmt"
 	"math/big"
 	"sync"
 
@@ -69,8 +68,8 @@ func (c *core) sendRoundChange(round *big.Int) {
 }
 
 func (c *core) handleRoundChange(msg *ibfttypes.Message, src istanbul.Validator) error {
-	fmt.Println("JRM-IBFT.handleRoundChange from", src)
 	logger := c.logger.New("state", c.state, "from", src.Address().Hex())
+	logger.Warn("JRM-IBFT.handleRoundChange", "from", src)
 
 	// Decode ROUND CHANGE message
 	var rc *istanbul.Subject
@@ -97,7 +96,7 @@ func (c *core) handleRoundChange(msg *ibfttypes.Message, src istanbul.Validator)
 	// Once we received f+1 ROUND CHANGE messages, those messages form a weak certificate.
 	// If our round number is smaller than the certificate's round number, we would
 	// try to catch up the round number.
-	fmt.Printf("JRM-IBFT.handleRoundChange with %v messages already\n", num)
+	logger.Warn("JRM-IBFT.handleRoundChange", "messages", num)
 	if c.waitingForRoundChange && num == c.valSet.F()+1 {
 		if cv.Round.Cmp(roundView.Round) < 0 {
 			c.sendRoundChange(roundView.Round)
