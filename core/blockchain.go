@@ -1225,7 +1225,7 @@ func (bc *BlockChain) insertStopped() bool {
 
 func (bc *BlockChain) procFutureBlocks() {
 	blocks := make([]*types.Block, 0, bc.futureBlocks.Len())
-	log.Warn("JRM-procFutureBlocks", "num", bc.futureBlocks.Len())
+	log.Info("JRM-procFutureBlocks", "num", bc.futureBlocks.Len())
 	for _, hash := range bc.futureBlocks.Keys() {
 		if block, exist := bc.futureBlocks.Peek(hash); exist {
 			blocks = append(blocks, block.(*types.Block))
@@ -1856,7 +1856,7 @@ func (bc *BlockChain) addFutureBlock(block *types.Block) error {
 //
 // After insertion is done, all accumulated events will be fired.
 func (bc *BlockChain) InsertChain(chain types.Blocks) (int, error) {
-	log.Warn("JRM-Core.InsertChain")
+	log.Info("JRM-Core.InsertChain")
 	// Sanity check that we have something meaningful to import
 	if len(chain) == 0 {
 		return 0, nil

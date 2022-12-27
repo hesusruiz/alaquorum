@@ -137,12 +137,12 @@ func (c *core) broadcast(msg *ibfttypes.Message) {
 	}
 
 	// Broadcast payload
-	log.Warn("JRM-broadcast trying to broadcast", "msg", msg)
+	log.Info("JRM-broadcast trying to broadcast", "msg", msg)
 	if err = c.backend.Broadcast(c.valSet, msg.Code, payload); err != nil {
 		logger.Error("Failed to broadcast message", "msg", msg, "err", err)
 		return
 	}
-	log.Warn("JRM-broadcast successful broadcasted msg")
+	log.Info("JRM-broadcast successful broadcasted msg")
 
 }
 
@@ -361,7 +361,7 @@ func (c *core) newRoundChangeTimer() {
 		timeout += time.Duration(math.Pow(2, float64(round))) * time.Second
 	}
 	// JRM-newRoundChangeTimer
-	log.Warn("JRM-newRoundChangeTimer", "round", round, "timeout", timeout.Seconds())
+	log.Info("JRM-newRoundChangeTimer", "round", round, "timeout", timeout.Seconds())
 
 	c.roundChangeTimer = time.AfterFunc(timeout, func() {
 		c.sendEvent(timeoutEvent{})

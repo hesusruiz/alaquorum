@@ -260,7 +260,7 @@ func (f *BlockFetcher) Notify(peer string, hash common.Hash, number uint64, time
 
 // Enqueue tries to fill gaps the fetcher's future import queue.
 func (f *BlockFetcher) Enqueue(peer string, block *types.Block) error {
-	log.Warn("JRM-BlockFetcher.Enqueue", "block", block.Number())
+	log.Info("JRM-BlockFetcher.Enqueue", "block", block.Number())
 	op := &blockOrHeaderInject{
 		origin: peer,
 		block:  block,
@@ -382,7 +382,7 @@ func (f *BlockFetcher) loop() {
 		case notification := <-f.notify:
 			// A block was announced, make sure the peer isn't DOSing us
 			blockAnnounceInMeter.Mark(1)
-			log.Warn("JRM-BlockFetcher block announced", "block", notification.number)
+			log.Info("JRM-BlockFetcher block announced", "block", notification.number)
 
 			count := f.announces[notification.origin] + 1
 			if count > hashLimit {
@@ -682,7 +682,7 @@ func (f *BlockFetcher) rescheduleFetch(fetch *time.Timer) {
 			earliest = announces[0].time
 		}
 	}
-	log.Warn("JRM-rescheduleFetch", "delay", arriveTimeout-time.Since(earliest))
+	log.Info("JRM-rescheduleFetch", "delay", arriveTimeout-time.Since(earliest))
 	fetch.Reset(arriveTimeout - time.Since(earliest))
 }
 

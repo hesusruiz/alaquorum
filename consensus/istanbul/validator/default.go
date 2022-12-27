@@ -117,7 +117,7 @@ func (valSet *defaultSet) CalcProposer(lastProposer common.Address, round uint64
 	valSet.validatorMu.RLock()
 	defer valSet.validatorMu.RUnlock()
 	valSet.proposer = valSet.selector(valSet, lastProposer, round)
-	log.Warn("JRM-CalcProposer", "round", round, "lastProposer", lastProposer, "nextProposer", valSet.proposer)
+	log.Info("JRM-CalcProposer", "round", round, "lastProposer", lastProposer, "nextProposer", valSet.proposer)
 }
 
 // ValidatorSetSorter sorts the validators based on the configured By function

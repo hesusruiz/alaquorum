@@ -289,12 +289,12 @@ func (e *Engine) Prepare(chain consensus.ChainHeaderReader, header *types.Header
 	// set header's timestamp
 	// JRM-Increment Alastria BlockPeriod
 	// header.Time = parent.Time + e.cfg.BlockPeriod
-	log.Warn("JRM-Prepare Current BlockPeriod", "period", e.cfg.BlockPeriod)
+	log.Info("JRM-Prepare Current BlockPeriod", "period", e.cfg.BlockPeriod)
 	header.Time = parent.Time + 3
 	if header.Time < uint64(time.Now().Unix()) {
 		oldHeaderTime := header.Time
 		header.Time = uint64(time.Now().Unix())
-		log.Warn("JRM-Prepare Adjust header.Time", "old", oldHeaderTime, "new", header.Time)
+		log.Info("JRM-Prepare Adjust header.Time", "old", oldHeaderTime, "new", header.Time)
 	}
 
 	return nil

@@ -387,16 +387,16 @@ func (w *worker) newWorkLoop(recommit time.Duration) {
 	}
 
 	for {
-		log.Warn("JRM-newWorkLoop recommit", "milliseconds", recommit.Milliseconds())
+		log.Info("JRM-newWorkLoop recommit", "milliseconds", recommit.Milliseconds())
 		select {
 		case <-w.startCh:
-			log.Warn("JRM-newWorkLoop <-w.startCh:", "milliseconds", recommit.Milliseconds())
+			log.Info("JRM-newWorkLoop <-w.startCh:", "milliseconds", recommit.Milliseconds())
 			clearPending(w.chain.CurrentBlock().NumberU64())
 			timestamp = time.Now().Unix()
 			commit(false, commitInterruptNewHead)
 
 		case head := <-w.chainHeadCh:
-			log.Warn("JRM-newWorkLoop <-w.chainHeadCh:", "milliseconds", recommit.Milliseconds())
+			log.Info("JRM-newWorkLoop <-w.chainHeadCh:", "milliseconds", recommit.Milliseconds())
 			if h, ok := w.engine.(consensus.Handler); ok {
 				h.NewChainHead()
 			}
@@ -405,7 +405,7 @@ func (w *worker) newWorkLoop(recommit time.Duration) {
 			commit(false, commitInterruptNewHead)
 
 		case <-timer.C:
-			log.Warn("JRM-newWorkLoop recommit, timer elapsed:", "milliseconds", recommit.Milliseconds())
+			log.Info("JRM-newWorkLoop recommit, timer elapsed:", "milliseconds", recommit.Milliseconds())
 			// If mining is running resubmit a new work cycle periodically to pull in
 			// higher priced transactions. Disable this overhead for pending blocks.
 			if w.isRunning() && (w.chainConfig.Clique == nil || w.chainConfig.Clique.Period > 0) {
@@ -414,12 +414,12 @@ func (w *worker) newWorkLoop(recommit time.Duration) {
 					timer.Reset(recommit)
 					continue
 				}
-				log.Warn("JRM-newWorkLoop doing commit")
+				log.Info("JRM-newWorkLoop doing commit")
 				commit(true, commitInterruptResubmit)
 			}
 
 		case interval := <-w.resubmitIntervalCh:
-			log.Warn("JRM-newWorkLoop <-w.resubmitIntervalCh:", "interval", interval)
+			log.Info("JRM-newWorkLoop <-w.resubmitIntervalCh:", "interval", interval)
 			// Adjust resubmit interval explicitly by user.
 			if interval < minRecommitInterval {
 				log.Warn("Sanitizing miner recommit interval", "provided", interval, "updated", minRecommitInterval)
@@ -444,7 +444,7 @@ func (w *worker) newWorkLoop(recommit time.Duration) {
 				recommit = recalcRecommit(minRecommit, recommit, float64(minRecommit.Nanoseconds()), false)
 				log.Trace("Decrease miner recommit interval", "from", before, "to", recommit)
 			}
-			log.Warn("JRM-newWorkLoop <-w.resubmitAdjustCh:", "milliseconds", recommit.Milliseconds())
+			log.Info("JRM-newWorkLoop <-w.resubmitAdjustCh:", "milliseconds", recommit.Milliseconds())
 
 			if w.resubmitHook != nil {
 				w.resubmitHook(minRecommit, recommit)
@@ -709,7 +709,7 @@ func (w *worker) resultLoop() {
 			allReceipts := task.privateStateRepo.MergeReceipts(pubReceipts, prvReceipts)
 
 			// Commit block and state to database.
-			log.Warn("JRM-Miner.resultLoop Writeblock", "number", block.Number(), "gasLimit", block.GasLimit())
+			log.Info("JRM-Miner.resultLoop Writeblock", "number", block.Number(), "gasLimit", block.GasLimit())
 			_, err := w.chain.WriteBlockWithState(block, allReceipts, logs, task.state, task.privateStateRepo, true)
 			if err != nil {
 				log.Error("Failed writing block to chain", "err", err)
@@ -869,14 +869,14 @@ func (w *worker) commitTransactions(txs *types.TransactionsByPriceAndNonce, coin
 
 	if w.current.gasPool == nil {
 		if w.current.header.Number.Uint64() >= params.AlastriaGasLimitBlockNumber {
-			log.Warn("JRM-Miner.commitTransactions - set AlastriaGasLimit", "number", w.current.header.Number)
+			log.Info("JRM-Miner.commitTransactions - set AlastriaGasLimit", "number", w.current.header.Number)
 			w.current.gasPool = new(core.GasPool).AddGas(params.AlastriaGasLimit)
 		} else {
 			w.current.gasPool = new(core.GasPool).AddGas(w.current.header.GasLimit)
 		}
 	}
 	// JRM-Miner.commitTransactions-End replace
-	log.Warn("JRM-Miner.commitTransactions", "gasPool", w.current.gasPool)
+	log.Info("JRM-Miner.commitTransactions", "gasPool", w.current.gasPool)
 
 	var coalescedLogs []*types.Log
 
@@ -1016,7 +1016,7 @@ func (w *worker) commitNewWork(interrupt *int32, noempty bool, timestamp int64) 
 		Time:       uint64(timestamp),
 	}
 
-	log.Warn("JRM-gas Limit", "limit", header.GasLimit)
+	log.Info("JRM-gas Limit", "limit", header.GasLimit)
 	// Only set the coinbase if our consensus engine is running (avoid spurious block rewards)
 	if w.isRunning() {
 		if w.coinbase == (common.Address{}) {

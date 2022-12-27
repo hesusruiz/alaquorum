@@ -82,7 +82,7 @@ func (c *core) handleEvents() {
 	}()
 
 	for {
-		log.Warn("JRM-IBFT.Core.handleEvents for loop start")
+		log.Info("JRM-IBFT.Core.handleEvents for loop start")
 
 		select {
 		case event, ok := <-c.events.Chan():
@@ -93,10 +93,10 @@ func (c *core) handleEvents() {
 			// A real event arrived, process interesting content
 			switch ev := event.Data.(type) {
 			case istanbul.RequestEvent:
-				log.Warn("JRM-IBFT.Core.handleEvents istanbul.RequestEvent")
+				log.Info("JRM-IBFT.Core.handleEvents istanbul.RequestEvent")
 				b, ok := ev.Proposal.(*types.Block)
 				if ok {
-					log.Warn("JRM-IBFT.Core.handleEvents RequestEvent", "number", ev.Proposal.Number(), "gasLimit", b.GasLimit(), "hash", ev.Proposal.Hash())
+					log.Info("JRM-IBFT.Core.handleEvents RequestEvent", "number", ev.Proposal.Number(), "gasLimit", b.GasLimit(), "hash", ev.Proposal.Hash())
 				}
 
 				r := &istanbul.Request{
@@ -107,13 +107,13 @@ func (c *core) handleEvents() {
 					c.storeRequestMsg(r)
 				}
 			case istanbul.MessageEvent:
-				log.Warn("JRM-IBFT.Core.handleEvents istanbul.MessageEvent")
+				log.Info("JRM-IBFT.Core.handleEvents istanbul.MessageEvent")
 
 				if err := c.handleMsg(ev.Payload); err == nil {
 					c.backend.Gossip(c.valSet, ev.Code, ev.Payload)
 				}
 			case backlogEvent:
-				log.Warn("JRM-IBFT.Core.handleEvents backlogEvent")
+				log.Info("JRM-IBFT.Core.handleEvents backlogEvent")
 				// No need to check signature for internal messages
 				if err := c.handleCheckedMsg(ev.msg, ev.src); err == nil {
 					p, err := ev.msg.Payload()
@@ -125,19 +125,19 @@ func (c *core) handleEvents() {
 				}
 			}
 		case _, ok := <-c.timeoutSub.Chan():
-			log.Warn("JRM-IBFT.Core.handleEvents <-c.timeoutSub.Chan()")
+			log.Info("JRM-IBFT.Core.handleEvents <-c.timeoutSub.Chan()")
 			if !ok {
 				return
 			}
 			c.handleTimeoutMsg()
 		case event, ok := <-c.finalCommittedSub.Chan():
-			log.Warn("JRM-IBFT.Core.handleEvents <-c.finalCommittedSub.Chan")
+			log.Info("JRM-IBFT.Core.handleEvents <-c.finalCommittedSub.Chan")
 			if !ok {
 				return
 			}
 			switch event.Data.(type) {
 			case istanbul.FinalCommittedEvent:
-				log.Warn("JRM-IBFT.Core.handleEvents FinalCommitted")
+				log.Info("JRM-IBFT.Core.handleEvents FinalCommitted")
 				c.handleFinalCommitted()
 			}
 		}
@@ -146,16 +146,16 @@ func (c *core) handleEvents() {
 
 // sendEvent sends events to mux
 func (c *core) sendEvent(ev interface{}) {
-	log.Warn("JRM-IBFT.Core.sendEvent")
+	log.Info("JRM-IBFT.Core.sendEvent")
 
 	switch event := ev.(type) {
 	case istanbul.RequestEvent:
 		b, _ := event.Proposal.(*types.Block)
-		log.Warn("JRM-IBFT.Core.sendEvent RequestEvent", "number", event.Proposal.Number(), "gasLimit", b.GasLimit())
+		log.Info("JRM-IBFT.Core.sendEvent RequestEvent", "number", event.Proposal.Number(), "gasLimit", b.GasLimit())
 	case istanbul.MessageEvent:
-		log.Warn("JRM-IBFT.Core.sendEvent MessageEvent", "code", event.Code)
+		log.Info("JRM-IBFT.Core.sendEvent MessageEvent", "code", event.Code)
 	case backlogEvent:
-		log.Warn("JRM-IBFT.Core.sendEvent BacklogEvent", "code", event.msg.Code)
+		log.Info("JRM-IBFT.Core.sendEvent BacklogEvent", "code", event.msg.Code)
 
 	}
 
@@ -196,19 +196,19 @@ func (c *core) handleCheckedMsg(msg *ibfttypes.Message, src istanbul.Validator) 
 
 	switch msg.Code {
 	case ibfttypes.MsgPreprepare:
-		log.Warn("JRM-IBFT.Core.handleCheckedMsg Preprepare")
+		log.Info("JRM-IBFT.Core.handleCheckedMsg Preprepare")
 		err := c.handlePreprepare(msg, src)
 		return testBacklog(err)
 	case ibfttypes.MsgPrepare:
-		log.Warn("JRM-IBFT.Core.handleCheckedMsg Prepare")
+		log.Info("JRM-IBFT.Core.handleCheckedMsg Prepare")
 		err := c.handlePrepare(msg, src)
 		return testBacklog(err)
 	case ibfttypes.MsgCommit:
-		log.Warn("JRM-IBFT.Core.handleCheckedMsg Commit")
+		log.Info("JRM-IBFT.Core.handleCheckedMsg Commit")
 		err := c.handleCommit(msg, src)
 		return testBacklog(err)
 	case ibfttypes.MsgRoundChange:
-		log.Warn("JRM-IBFT.Core.handleCheckedMsg RoundChange")
+		log.Info("JRM-IBFT.Core.handleCheckedMsg RoundChange")
 		err := c.handleRoundChange(msg, src)
 		return testBacklog(err)
 	default:
