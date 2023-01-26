@@ -34,15 +34,18 @@ var (
 	GoerliGenesisHash  = common.HexToHash("0xbf7e331f7f7c1dd2e05159666b3bf8bc7a8a3a9eb1d518969eab529dd9b88c1a")
 	// TODO: update with yolov2 values
 	YoloV2GenesisHash = common.HexToHash("0x498a7239036dd2cd09e2bb8a80922b78632017958c332b42044c250d603a8a3e")
+	// JRM-Alastria TrustedCheckpoints
+	AlastriaGenesishash = common.HexToHash("0x77a8c93fdee76dcbe099afcda0ee6b2856a0fbebc30fd6bee45ca1a555dd474c")
 )
 
 // TrustedCheckpoints associates each known checkpoint with the genesis hash of
 // the chain it belongs to.
 var TrustedCheckpoints = map[common.Hash]*TrustedCheckpoint{
-	MainnetGenesisHash: MainnetTrustedCheckpoint,
-	RopstenGenesisHash: RopstenTrustedCheckpoint,
-	RinkebyGenesisHash: RinkebyTrustedCheckpoint,
-	GoerliGenesisHash:  GoerliTrustedCheckpoint,
+	MainnetGenesisHash:  MainnetTrustedCheckpoint,
+	RopstenGenesisHash:  RopstenTrustedCheckpoint,
+	RinkebyGenesisHash:  RinkebyTrustedCheckpoint,
+	GoerliGenesisHash:   GoerliTrustedCheckpoint,
+	AlastriaGenesishash: AlastriaTrustedCheckpoint,
 }
 
 // CheckpointOracles associates each known checkpoint oracles with the genesis hash of
@@ -234,6 +237,14 @@ var (
 			Period: 15,
 			Epoch:  30000,
 		},
+	}
+
+	// AlastriaTrustedCheckpoint contains the light client trusted checkpoint for the Alastria RedT network.
+	AlastriaTrustedCheckpoint = &TrustedCheckpoint{
+		SectionIndex: 1456,
+		SectionHead:  common.HexToHash("0x514a0e8a7db5a554f3ab3d860d3e5311ac91559249b5db659a3f17e94cdb38f4"),
+		CHTRoot:      common.HexToHash("0xdeea02ecf3397b6eca0daa24d216780ae539d4227d0b9303aa205be3353c6bce"),
+		BloomRoot:    common.HexToHash("0xb58cbd5899de5c07880393b4467799d5dc6cac86dfbcd6b44828fcc44741f44a"),
 	}
 
 	// AllEthashProtocolChanges contains every protocol change (EIPs) introduced

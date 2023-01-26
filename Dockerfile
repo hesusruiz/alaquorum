@@ -36,6 +36,8 @@ COPY --from=builder /go-ethereum/build/bin/newnodekey /newnodekey
 # Copy the cat command to help extract the binary from the container
 COPY --from=builder /bin/cat /cat
 
+VOLUME /root/alastria
+
 # Make sure we are in the root directory
 WORKDIR /
 ENV PATH=/

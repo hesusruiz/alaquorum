@@ -1,0 +1,160 @@
+###############################################################################
+# THE FIRST TWO SETTINGS ARE PROBABLY THE ONLY ONES YOU NEED TO MODIFY
+# YOU CAN ADAPT THEM FOR YOUR SPECIFIC NEEDS
+###############################################################################
+
+# The identity of the node (will be publicly displayed in Ethstats)
+identity: VAL_TELIN2_PC_T_2_8_00
+
+# The type of node. Can be "regular", "validator" or "boot"
+nodetype: regular
+
+
+###############################################################################
+# GENERAL PARAMETERS FOR ALASTRIA REDT
+# YOU SHOULD NOT MODIFY THEM UNLESS YOU HAVE A GOOD REASON
+###############################################################################
+
+###################################################
+# ETHEREUM OPTIONS:
+###################################################
+
+# Alastria RedT network id
+networkid: 83584648538
+
+# The directory where blockchain data is stored
+datadir: /root/alastria/data_dir
+
+# Data directory for ancient chain segments (default = inside chaindata)
+datadir.ancient: /root/alastria/data_ancient
+
+# Disables monitoring for and managing USB hardware wallets
+nousb: true
+
+# Blockchain sync mode ("fast", "full", or "light")
+syncmode: full
+
+# Blockchain garbage collection mode ("full", "archive")
+gcmode: full
+
+# Number of recent blocks to maintain transactions index by-hash for (default = index all blocks) (default: 0)
+txlookuplimit: 0
+
+###################################################
+# PERFORMANCE TUNING OPTIONS
+###################################################
+
+# Megabytes of memory allocated to internal caching (default = 4096 mainnet full node, 128 light mode) (default: 1024)
+cache: 0
+
+###################################################
+# API AND CONSOLE OPTIONS
+###################################################
+
+# Enable the HTTP-RPC server
+http: true
+# HTTP-RPC server listening interface (default: "localhost")
+http.addr: 0.0.0.0
+# HTTP-RPC server listening port (default: 8545)
+http.port: 22000
+# API's offered over the HTTP-RPC interface
+http.api: "admin,eth,debug,miner,net,txpool,personal,web3,istanbul"
+# Comma separated list of domains from which to accept cross origin requests (browser enforced)
+http.corsdomain: "*"
+# Comma separated list of virtual hostnames from which to accept requests (server enforced). Accepts '*' wildcard. (default: "localhost")
+http.vhosts: "*"
+
+# Enable the WS-RPC server
+ws: true
+# WS-RPC server listening interface (default: "localhost")
+ws.addr: 0.0.0.0
+# WS-RPC server listening port (default: 8546)
+ws.port: 22001
+# API's offered over the WS-RPC interface
+ws.api: "admin,eth,debug,miner,net,txpool,personal,web3,istanbul"
+# Origins from which to accept websockets requests
+ws.origins: "*"
+
+###################################################
+# NETWORKING OPTIONS
+###################################################
+
+# The P2P network listening port. This is how nodes talk to each other (default: 30303)
+port: 21000
+
+# Maximum number of network peers (network disabled if set to 0) (default: 50)
+maxpeers: 50
+
+# Maximum number of pending connection attempts (defaults used if set to 0) (default: 0)
+maxpendpeers: 0
+
+# NAT port mapping mechanism (any|none|upnp|pmp|extip:<IP>) (default: "any")
+nat: any
+
+# Disables the peer discovery mechanism (manual peer addition)
+nodiscover: true
+
+# Restricts network communication to the given IP networks (CIDR masks)
+# netrestrict: value
+  
+# P2P node key file, which is where the private key of the node resides
+nodekey: /root/alastria/secrets/nodekey"
+
+
+###################################################
+# MINER OPTIONS
+###################################################
+
+# Enable mining
+mine: true
+
+# Number of CPU threads to use for mining (default: 0)
+miner.threads: "$(grep -c processor /proc/cpuinfo)"
+
+
+###################################################
+# LOGGING AND DEBUGGING OPTIONS
+###################################################
+
+# Logging verbosity: 0=silent, 1=error, 2=warn, 3=info, 4=debug, 5=detail (default: 3)
+verbosity: 3
+
+# Per-module verbosity: comma-separated list of <pattern>=<level> (e.g. eth/*=5,p2p=4)
+vmodule: "consensus/istanbul/ibft/core/core.go=5,eth/fetcher/block_fetcher.go=5,p2p/dial.go=5"
+
+# Prepends log messages with call-site location (file and line number)
+debug: true
+
+
+###################################################
+# QUORUM OPTIONS
+###################################################
+
+
+# Overrides the default immutability threshold for Quorum nodes.
+# Its the threshold beyond which block data will be moved to ancient db (default: 3162240)
+immutabilitythreshold: 3162240
+
+# If enabled, the node will allow only a defined list of nodes to connect
+permissioned: true
+
+# Location of the permissioned permissioned-nodes.json file
+permissioned.nodes: /root/alastria/config/permissioned-nodes.json
+
+# Path to the ipc file when using unix domain socket for the private transaction manager connection
+# Disabled if set to "ignore"
+ptm.socket: ignore
+
+
+###################################################
+# ISTANBUL OPTIONS
+###################################################
+
+# Timeout for each Istanbul round in milliseconds (default: 10000)
+istanbul.requesttimeout: 10000
+
+# Default minimum difference between two consecutive block's timestamps in seconds (default: 1)
+istanbul.blockperiod: 3
+
+# If enabled, emit specially formatted logging checkpoints
+emitcheckpoints: true

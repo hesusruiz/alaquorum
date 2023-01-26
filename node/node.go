@@ -730,9 +730,12 @@ func (n *Node) Lifecycle(lifecycle interface{}) error {
 		return ErrNodeStopped
 	}
 	// Otherwise try to find the service to return
+	fmt.Printf("JRM-Lifecycle entry type:%T - value:%#v\n", lifecycle, lifecycle)
 	element := reflect.ValueOf(lifecycle).Elem()
+	fmt.Println("JRM-Lifecycle Elem", element)
 	for _, runningLifecycle := range n.lifecycles {
 		lElem := reflect.TypeOf(runningLifecycle)
+		fmt.Println("JRM-Lifecycle Item element", lElem)
 		if lElem == element.Type() {
 			element.Set(reflect.ValueOf(runningLifecycle))
 			return nil

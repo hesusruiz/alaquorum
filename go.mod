@@ -31,12 +31,13 @@ require (
 	github.com/eapache/channels v1.1.0
 	github.com/eapache/queue v1.1.0 // indirect
 	github.com/edsrzf/mmap-go v0.0.0-20160512033002-935e0e8a636c
-	github.com/fatih/color v1.7.0
+	github.com/fatih/color v1.10.0
 	github.com/fjl/memsize v0.0.0-20180418122429-ca190fb6ffbc
 	github.com/gballet/go-libpcsclite v0.0.0-20190607065134-2772fd86a8ff
 	github.com/go-ole/go-ole v1.2.1 // indirect
 	github.com/go-sourcemap/sourcemap v2.1.2+incompatible // indirect
 	github.com/go-stack/stack v1.8.0
+	github.com/goccy/go-yaml v1.9.5
 	github.com/golang/mock v1.4.3
 	github.com/golang/protobuf v1.3.4
 	github.com/golang/snappy v0.0.3-0.20201103224600-674baa8c7fc3

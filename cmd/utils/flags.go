@@ -27,6 +27,7 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strconv"
 	"strings"
 	"text/tabwriter"
@@ -56,6 +57,7 @@ import (
 	"github.com/ethereum/go-ethereum/graphql"
 	"github.com/ethereum/go-ethereum/internal/ethapi"
 	"github.com/ethereum/go-ethereum/internal/flags"
+	"github.com/ethereum/go-ethereum/internal/yaml"
 	"github.com/ethereum/go-ethereum/les"
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/ethereum/go-ethereum/metrics"
@@ -77,6 +79,174 @@ import (
 	pcsclite "github.com/gballet/go-libpcsclite"
 	"gopkg.in/urfave/cli.v1"
 )
+
+var alaCfgStr = `
+###############################################################################
+# THE FIRST TWO SETTINGS ARE PROBABLY THE ONLY ONES YOU NEED TO MODIFY
+# YOU CAN ADAPT THEM FOR YOUR SPECIFIC NEEDS
+###############################################################################
+
+# The type of node. Can be "regular", "validator" or "boot"
+nodetype: validator
+
+
+###############################################################################
+# GENERAL PARAMETERS FOR ALASTRIA REDT
+# YOU SHOULD NOT MODIFY THEM UNLESS YOU HAVE A GOOD REASON
+###############################################################################
+
+###################################################
+# ETHEREUM OPTIONS:
+###################################################
+
+# Alastria RedT network id
+networkid: 83584648538
+
+# The directory where blockchain data is stored
+datadir: /root/alastria/data_dir
+
+# Data directory for ancient chain segments (default = inside chaindata)
+datadir_ancient: /root/alastria/data_ancient
+
+# Disables monitoring for and managing USB hardware wallets
+nousb: true
+
+# Blockchain sync mode ("fast", "full", or "light")
+syncmode: full
+
+# Blockchain garbage collection mode ("full", "archive")
+gcmode: full
+
+# Number of recent blocks to maintain transactions index by-hash for (default = index all blocks) (default: 0)
+txlookuplimit: 0
+
+###################################################
+# PERFORMANCE TUNING OPTIONS
+###################################################
+
+# Megabytes of memory allocated to internal caching (default = 4096 mainnet full node, 128 light mode) (default: 1024)
+cache: 0
+
+###################################################
+# API AND CONSOLE OPTIONS
+###################################################
+  
+# Enable the HTTP-RPC server
+http:
+  # HTTP-RPC server listening interface (default: "localhost")
+  addr: 0.0.0.0
+  # HTTP-RPC server listening port (default: 8545)
+  port: 22000
+  # API's offered over the HTTP-RPC interface
+  api: "admin,eth,debug,miner,net,txpool,personal,web3,istanbul"
+  # Comma separated list of domains from which to accept cross origin requests (browser enforced)
+  #corsdomain: "*"
+  # Comma separated list of virtual hostnames from which to accept requests (server enforced). Accepts '*' wildcard. (default: "localhost")
+  #vhosts: "*"
+
+# Enable the WS-RPC server
+ws:
+  # WS-RPC server listening interface (default: "localhost")
+  addr: 0.0.0.0
+  # WS-RPC server listening port (default: 8546)
+  port: 22001
+  # API's offered over the WS-RPC interface
+  api: "admin,eth,debug,miner,net,txpool,personal,web3,istanbul"
+  # Origins from which to accept websockets requests
+  #origins: "*"
+
+###################################################
+# NETWORKING OPTIONS
+###################################################
+
+# The P2P network listening port. This is how nodes talk to each other (default: 30303)
+port: 21000
+
+# Maximum number of network peers (network disabled if set to 0) (default: 50)
+maxpeers: 50
+
+# NAT port mapping mechanism (any|none|upnp|pmp|extip:<IP>) (default: "any")
+nat: any
+
+# Disables the peer discovery mechanism (manual peer addition)
+nodiscover: true
+
+# Restricts network communication to the given IP networks (CIDR masks)
+# netrestrict: value
+  
+# P2P node key file, which is where the private key of the node resides
+nodekey: /root/alastria/secrets/nodekey
+
+
+###################################################
+# MINER OPTIONS
+###################################################
+
+# Disable mining
+mine: false
+
+miner:
+  # Number of CPU threads to use for mining (default: 0)
+  threads: "$(grep -c processor /proc/cpuinfo)"
+
+
+###################################################
+# LOGGING AND DEBUGGING OPTIONS
+###################################################
+
+# Logging verbosity: 0=silent, 1=error, 2=warn, 3=info, 4=debug, 5=detail (default: 3)
+verbosity: 3
+
+# Per-module verbosity: comma-separated list of <pattern>=<level> (e.g. eth/*=5,p2p=4)
+vmodule: "consensus/istanbul/ibft/core/core.go=5,eth/fetcher/block_fetcher.go=5,p2p/dial.go=5"
+
+# Prepends log messages with call-site location (file and line number)
+debug: true
+
+
+###################################################
+# QUORUM OPTIONS
+###################################################
+
+
+# Overrides the default immutability threshold for Quorum nodes.
+# Its the threshold beyond which block data will be moved to ancient db (default: 3162240)
+immutabilitythreshold: 3162240
+
+# If enabled, the node will allow only a defined list of nodes to connect
+permissioned: true
+
+# Location of the permissioned permissioned-nodes.json file
+permissioned_nodes: /root/alastria/config/permissioned-nodes.json
+
+ptm:
+  # Path to the ipc file when using unix domain socket for the private transaction manager connection
+  # Disabled if set to "ignore"
+  socket: ignore
+
+
+###################################################
+# ISTANBUL OPTIONS
+###################################################
+
+istanbul:
+  # Timeout for each Istanbul round in milliseconds (default: 10000)
+  requesttimeout: 10000
+  
+  # Default minimum difference between two consecutive block's timestamps in seconds (default: 1)
+  blockperiod: 3
+  
+  # If enabled, emit specially formatted logging checkpoints
+  emitcheckpoints: true
+
+`
+
+func MustYAML(c *yaml.YAML, err error) *yaml.YAML {
+	if err != nil {
+		panic(err)
+	}
+	return c
+}
 
 func init() {
 	cli.AppHelpTemplate = `{{.Name}} {{if .Flags}}[global options] {{end}}command{{if .Flags}} [command options]{{end}} [arguments...]
@@ -113,12 +283,15 @@ func printHelp(out io.Writer, templ string, data interface{}) {
 // The flags are defined here so their names and help texts
 // are the same for all commands.
 
+// JRM-Alastria command line settings defaults
 var (
+	c = MustYAML(yaml.ParseYaml(alaCfgStr))
 	// General settings
 	DataDirFlag = DirectoryFlag{
 		Name:  "datadir",
 		Usage: "Data directory for the databases and keystore",
-		Value: DirectoryString(node.DefaultDataDir()),
+		// Value: DirectoryString(node.DefaultDataDir()),
+		Value: DirectoryString(c.String("datadir", node.DefaultDataDir())),
 	}
 	RaftLogDirFlag = DirectoryFlag{
 		Name:  "raftlogdir",
@@ -128,12 +301,13 @@ var (
 	AncientFlag = DirectoryFlag{
 		Name:  "datadir.ancient",
 		Usage: "Data directory for ancient chain segments (default = inside chaindata)",
+		Value: DirectoryString(c.String("datadir_ancient")),
 	}
 	KeyStoreDirFlag = DirectoryFlag{
 		Name:  "keystore",
 		Usage: "Directory for the keystore (default = inside the datadir)",
 	}
-	NoUSBFlag = cli.BoolFlag{
+	NoUSBFlag = cli.BoolTFlag{
 		Name:  "nousb",
 		Usage: "Disables monitoring for and managing USB hardware wallets",
 	}
@@ -145,7 +319,8 @@ var (
 	NetworkIdFlag = cli.Uint64Flag{
 		Name:  "networkid",
 		Usage: "Explicitly set network id (integer)(For testnets: use --ropsten, --rinkeby, --goerli instead)",
-		Value: eth.DefaultConfig.NetworkId,
+		// Value: eth.DefaultConfig.NetworkId,
+		Value: uint64(c.Int64("networkid")),
 	}
 	GoerliFlag = cli.BoolFlag{
 		Name:  "goerli",
@@ -367,7 +542,8 @@ var (
 	CacheFlag = cli.IntFlag{
 		Name:  "cache",
 		Usage: "Megabytes of memory allocated to internal caching (default = 4096 mainnet full node, 128 light mode)",
-		Value: 1024,
+		// Value: 1024,
+		Value: c.Int("cache"),
 	}
 	CacheDatabaseFlag = cli.IntFlag{
 		Name:  "cache.database",
@@ -415,7 +591,8 @@ var (
 	MinerThreadsFlag = cli.IntFlag{
 		Name:  "miner.threads",
 		Usage: "Number of CPU threads to use for mining",
-		Value: 0,
+		// Value: 0,
+		Value: runtime.NumCPU(),
 	}
 	MinerNotifyFlag = cli.StringFlag{
 		Name:  "miner.notify",
@@ -492,6 +669,7 @@ var (
 	EthStatsURLFlag = cli.StringFlag{
 		Name:  "ethstats",
 		Usage: "Reporting URL of a ethstats service (nodename:secret@host:port)",
+		Value: c.String("ethstats"),
 	}
 	FakePoWFlag = cli.BoolFlag{
 		Name:  "fakepow",
@@ -531,34 +709,35 @@ var (
 		Name:  "ipcpath",
 		Usage: "Filename for IPC socket/pipe within the datadir (explicit paths escape it)",
 	}
-	HTTPEnabledFlag = cli.BoolFlag{
+	// HTTPEnabledFlag = cli.BoolFlag{
+	HTTPEnabledFlag = cli.BoolTFlag{
 		Name:  "http",
 		Usage: "Enable the HTTP-RPC server",
 	}
 	HTTPListenAddrFlag = cli.StringFlag{
 		Name:  "http.addr",
 		Usage: "HTTP-RPC server listening interface",
-		Value: node.DefaultHTTPHost,
+		Value: c.String("http.addr", node.DefaultHTTPHost),
 	}
 	HTTPPortFlag = cli.IntFlag{
 		Name:  "http.port",
 		Usage: "HTTP-RPC server listening port",
-		Value: node.DefaultHTTPPort,
+		Value: c.Int("http.port", node.DefaultHTTPPort),
 	}
 	HTTPCORSDomainFlag = cli.StringFlag{
 		Name:  "http.corsdomain",
 		Usage: "Comma separated list of domains from which to accept cross origin requests (browser enforced)",
-		Value: "",
+		Value: c.String("http.corsdomain"),
 	}
 	HTTPVirtualHostsFlag = cli.StringFlag{
 		Name:  "http.vhosts",
 		Usage: "Comma separated list of virtual hostnames from which to accept requests (server enforced). Accepts '*' wildcard.",
-		Value: strings.Join(node.DefaultConfig.HTTPVirtualHosts, ","),
+		Value: strings.Join(c.ListString("http.vhosts", node.DefaultConfig.HTTPVirtualHosts), ","),
 	}
 	HTTPApiFlag = cli.StringFlag{
 		Name:  "http.api",
 		Usage: "API's offered over the HTTP-RPC interface",
-		Value: "",
+		Value: c.String("http.api"),
 	}
 	GraphQLEnabledFlag = cli.BoolFlag{
 		Name:  "graphql",
@@ -574,29 +753,30 @@ var (
 		Usage: "Comma separated list of virtual hostnames from which to accept requests (server enforced). Accepts '*' wildcard.",
 		Value: strings.Join(node.DefaultConfig.GraphQLVirtualHosts, ","),
 	}
-	WSEnabledFlag = cli.BoolFlag{
+	// WSEnabledFlag = cli.BoolFlag{
+	WSEnabledFlag = cli.BoolTFlag{
 		Name:  "ws",
 		Usage: "Enable the WS-RPC server",
 	}
 	WSListenAddrFlag = cli.StringFlag{
 		Name:  "ws.addr",
 		Usage: "WS-RPC server listening interface",
-		Value: node.DefaultWSHost,
+		Value: c.String("ws.addr", node.DefaultWSHost),
 	}
 	WSPortFlag = cli.IntFlag{
 		Name:  "ws.port",
 		Usage: "WS-RPC server listening port",
-		Value: node.DefaultWSPort,
+		Value: c.Int("ws.port", node.DefaultWSPort),
 	}
 	WSApiFlag = cli.StringFlag{
 		Name:  "ws.api",
 		Usage: "API's offered over the WS-RPC interface",
-		Value: "",
+		Value: c.String("ws.api"),
 	}
 	WSAllowedOriginsFlag = cli.StringFlag{
 		Name:  "ws.origins",
 		Usage: "Origins from which to accept websockets requests",
-		Value: "",
+		Value: c.String("ws.origins"),
 	}
 	ExecFlag = cli.StringFlag{
 		Name:  "exec",
@@ -611,17 +791,17 @@ var (
 	MaxPeersFlag = cli.IntFlag{
 		Name:  "maxpeers",
 		Usage: "Maximum number of network peers (network disabled if set to 0)",
-		Value: node.DefaultConfig.P2P.MaxPeers,
+		Value: c.Int("maxpeers", node.DefaultConfig.P2P.MaxPeers),
 	}
 	MaxPendingPeersFlag = cli.IntFlag{
 		Name:  "maxpendpeers",
 		Usage: "Maximum number of pending connection attempts (defaults used if set to 0)",
-		Value: node.DefaultConfig.P2P.MaxPendingPeers,
+		Value: c.Int("maxpendpeers", node.DefaultConfig.P2P.MaxPendingPeers),
 	}
 	ListenPortFlag = cli.IntFlag{
 		Name:  "port",
 		Usage: "Network listening port",
-		Value: 30303,
+		Value: c.Int("port", 30303),
 	}
 	BootnodesFlag = cli.StringFlag{
 		Name:  "bootnodes",
@@ -631,6 +811,7 @@ var (
 	NodeKeyFileFlag = cli.StringFlag{
 		Name:  "nodekey",
 		Usage: "P2P node key file",
+		Value: c.String("nodekey"),
 	}
 	NodeKeyHexFlag = cli.StringFlag{
 		Name:  "nodekeyhex",
@@ -639,9 +820,10 @@ var (
 	NATFlag = cli.StringFlag{
 		Name:  "nat",
 		Usage: "NAT port mapping mechanism (any|none|upnp|pmp|extip:<IP>)",
-		Value: "any",
+		Value: c.String("nat", "any"),
 	}
-	NoDiscoverFlag = cli.BoolFlag{
+	// NoDiscoverFlag = cli.BoolFlag{
+	NoDiscoverFlag = cli.BoolTFlag{
 		Name:  "nodiscover",
 		Usage: "Disables the peer discovery mechanism (manual peer addition)",
 	}
@@ -780,7 +962,7 @@ var (
 	QuorumImmutabilityThreshold = cli.IntFlag{
 		Name:  "immutabilitythreshold",
 		Usage: "overrides the default immutability threshold for Quorum nodes. Its the threshold beyond which block data will be moved to ancient db",
-		Value: 3162240,
+		Value: c.Int("immutabilitythreshold", 3162240),
 	}
 	// Raft flags
 	RaftModeFlag = cli.BoolFlag{
@@ -798,7 +980,8 @@ var (
 		Value: 0,
 	}
 
-	EmitCheckpointsFlag = cli.BoolFlag{
+	// EmitCheckpointsFlag = cli.BoolFlag{
+	EmitCheckpointsFlag = cli.BoolTFlag{
 		Name:  "emitcheckpoints",
 		Usage: "If enabled, emit specially formatted logging checkpoints",
 	}
@@ -813,7 +996,8 @@ var (
 	}
 
 	// Permission
-	EnableNodePermissionFlag = cli.BoolFlag{
+	// EnableNodePermissionFlag = cli.BoolFlag{
+	EnableNodePermissionFlag = cli.BoolTFlag{
 		Name:  "permissioned",
 		Usage: "If enabled, the node will allow only a defined list of nodes to connect",
 	}
@@ -848,12 +1032,12 @@ var (
 	IstanbulRequestTimeoutFlag = cli.Uint64Flag{
 		Name:  "istanbul.requesttimeout",
 		Usage: "Timeout for each Istanbul round in milliseconds",
-		Value: eth.DefaultConfig.Istanbul.RequestTimeout,
+		Value: uint64(c.Int("istanbul.requesttimeout", int(eth.DefaultConfig.Istanbul.RequestTimeout))),
 	}
 	IstanbulBlockPeriodFlag = cli.Uint64Flag{
 		Name:  "istanbul.blockperiod",
 		Usage: "Default minimum difference between two consecutive block's timestamps in seconds",
-		Value: eth.DefaultConfig.Istanbul.BlockPeriod,
+		Value: uint64(c.Int("istanbul.blockperiod", int(eth.DefaultConfig.Istanbul.BlockPeriod))),
 	}
 	// Multitenancy setting
 	MultitenancyFlag = cli.BoolFlag{
@@ -1824,6 +2008,7 @@ func SetEthConfig(ctx *cli.Context, stack *node.Node, cfg *eth.Config) {
 	}
 	if ctx.GlobalIsSet(NetworkIdFlag.Name) {
 		cfg.NetworkId = ctx.GlobalUint64(NetworkIdFlag.Name)
+		fmt.Println("JRM-NetworkID:", cfg.NetworkId)
 	}
 	if ctx.GlobalIsSet(CacheFlag.Name) || ctx.GlobalIsSet(CacheDatabaseFlag.Name) {
 		cfg.DatabaseCache = ctx.GlobalInt(CacheFlag.Name) * ctx.GlobalInt(CacheDatabaseFlag.Name) / 100

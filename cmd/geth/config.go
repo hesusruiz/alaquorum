@@ -108,6 +108,38 @@ func loadConfig(file string, cfg *gethConfig) error {
 	return err
 }
 
+// func loadConfig(file string, cfg *gethConfig) error {
+// 	c, err := yaml.ParseYamlFile(file)
+// 	if err != nil {
+// 		return err
+// 	}
+
+// 	cfg.Node.UserIdent = c.String("identity")
+
+// 	cfg.Eth.NetworkId = uint64(c.Int("networkid"))
+// 	cfg.Node.DataDir = c.String("datadir")
+// 	cfg.Eth.DatabaseFreezer = c.String("datadir.ancient")
+// 	cfg.Node.NoUSB = c.Bool("nousb")
+
+// 	switch c.String("syncmode") {
+// 	case "full":
+// 		cfg.Eth.SyncMode = downloader.FullSync
+// 	case "fast":
+// 		cfg.Eth.SyncMode = downloader.FastSync
+// 	case "light":
+// 		cfg.Eth.SyncMode = downloader.LightSync
+// 	default:
+// 		return fmt.Errorf(`unknown sync mode %q, want "full", "fast" or "light"`, c.String("syncmode"))
+// 	}
+
+// 	cfg.Eth.Istanbul.RequestTimeout = uint64(c.Int("istanbul.requesttimeout"))
+// 	cfg.Eth.Istanbul.BlockPeriod = uint64(c.Int("istanbul.blockperiod"))
+
+// 	cfg.Eth.TxLookupLimit = uint64(c.Int("txlookuplimit"))
+
+// 	return nil
+// }
+
 func defaultNodeConfig() node.Config {
 	cfg := node.DefaultConfig
 	cfg.Name = clientIdentifier

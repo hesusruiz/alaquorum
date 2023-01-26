@@ -299,6 +299,11 @@ func init() {
 	app.Flags = append(app.Flags, metricsFlags...)
 
 	app.Before = func(ctx *cli.Context) error {
+		// if len(ctx.GlobalString(utils.IdentityFlag.Name)) == 0 {
+		// 	fmt.Println("Node identity is required, set it with --identity")
+		// 	os.Exit(1)
+		// }
+
 		return debug.Setup(ctx)
 	}
 	app.After = func(ctx *cli.Context) error {
@@ -308,8 +313,46 @@ func init() {
 	}
 }
 
+var alaArgs = []string{
+	"--networkid=83584648538",
+	"--datadir=/root/alastria/data_dir",
+	// "--datadir.ancient=/root/alastria/data_ancient",
+	"--nousb=true",
+	"--syncmode=full",
+	"--gcmode=full",
+	"--txlookuplimit=0",
+	"--cache=0",
+	"--http",
+	"--http.addr=0.0.0.0",
+	"--http.port=22000",
+	"--http.api=admin,eth,debug,miner,net,txpool,personal,web3,istanbul",
+	"--ws",
+	"--ws.addr=0.0.0.0",
+	"--ws.port=22001",
+	"--ws.api=admin,eth,debug,miner,net,txpool,personal,web3,istanbul",
+	"--port=21000",
+	"--maxpeers=50",
+	"--nat=any",
+	"--nodiscover=true",
+	"--nodekey=/root/alastria/secrets/nodekey",
+	"--mine=false",
+	"--miner.threads=2",
+	"--verbosity=3",
+	"--vmodule=consensus/istanbul/ibft/core/core.go=5,eth/fetcher/block_fetcher.go=5,p2p/dial.go=5",
+	"--debug=true",
+	"--immutabilitythreshold=2000",
+	"--permissioned=true",
+	// "--ptm.socket=ignore",
+	"--istanbul.requesttimeout=10000",
+	"--istanbul.blockperiod=3",
+	"--emitcheckpoints=true",
+}
+
 func main() {
-	if err := app.Run(os.Args); err != nil {
+	var osargs []string
+	osargs = append(osargs, alaArgs...)
+	osargs = append(osargs, os.Args[1:]...)
+	if err := app.Run(osargs); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
