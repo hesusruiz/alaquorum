@@ -18,8 +18,8 @@ geth:
 	@echo "Run \"$(GOBIN)/geth\" to launch geth."
 
 aladocker:
-	docker build -t hesusruiz/alageth:v1.04 .
-	docker tag hesusruiz/alageth:v1.04 hesusruiz/alageth:latest
+	docker build -t hesusruiz/alageth:v1.05 .
+	docker tag hesusruiz/alageth:v1.05 hesusruiz/alageth:latest
 
 alageth:
 	docker run --rm hesusruiz/alageth cat /geth >build/bin/geth
